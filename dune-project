@@ -7,7 +7,7 @@
 (maintainers "Guillaume Petiot <guillaume@tarides.com>")
 (package
  (name get-activity)
- (synopsis "collect activity as markdown")
+ (synopsis "Collect activity as markdown")
  (depends
   (cmdliner (>= 1.1.1))
   cohttp
