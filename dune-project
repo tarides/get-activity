@@ -9,7 +9,7 @@
  (name get-activity)
  (synopsis "collect activity as markdown")
  (depends
-  cmdliner
+  (cmdliner (>= 1.1.1))
   cohttp
   cohttp-lwt
   cohttp-lwt-unix
