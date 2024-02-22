@@ -1,3 +1,17 @@
+<h1 align="center">
+  get-activity
+</h1>
+
+<p align="center">
+  <strong>Activity aggregation and formatting.</strong>
+</p>
+
+<p align="center">
+  <a href="https://ocaml.ci.dev/github/tarides/get-activity">
+    <img src="https://img.shields.io/endpoint?url=https://ocaml.ci.dev/badge/tarides/get-activity/main&logo=ocaml" alt="OCaml-CI Build Status" />
+  </a>
+</p>
+
 An experimental script to collect your recent activity from e.g. GitHub and format it as markdown.
 The idea is that you keep a journal (e.g. `log.md`) and instead of manually copying and pasting things
 into it, you just run a command in your text editor and it pastes in everything you did since the last
