@@ -2,9 +2,9 @@
 (name get-activity)
 (formatting disabled)
 (generate_opam_files true)
-(source (github talex5/get-activity))
+(source (github tarides/get-activity))
 (authors "talex5@gmail.com")
-(maintainers "talex5@gmail.com")
+(maintainers "Guillaume Petiot <guillaume@tarides.com>")
 (package
  (name get-activity)
  (synopsis "collect activity as markdown")
