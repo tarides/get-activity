@@ -2,7 +2,7 @@
 
 ### Added
 
-Expose the library `get-activity-lib` as an opam package (#<PR_NUMBER>, @gpetiot)
+Expose the library `get-activity-lib` as an opam package (#4, @gpetiot)
 
 ## 0.1
 
