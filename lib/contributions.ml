@@ -5,6 +5,7 @@ let ( / ) a b = Json.Util.member b a
 let query =
   {| query($from: DateTime!, $to: DateTime!) {
    viewer {
+    login
     contributionsCollection(from: $from, to: $to) {
       issueContributions(first: 100) {
         nodes {
@@ -82,6 +83,8 @@ type item = {
   body : string;
 }
 
+type t = { username : string; activity : item list Repo_map.t }
+
 let read_issues json =
   Json.Util.to_list (json / "nodes") |> List.filter ((<>) `Null) |> List.map @@ fun node ->
   let date = Datetime.parse (node / "occurredAt") in
@@ -123,6 +126,7 @@ let read_repos json =
   { kind = `New_repo; date; url; title = "Created new repository"; body = ""; repo }
 
 let of_json ~from json =
+  let username = json / "data" / "viewer" / "login" |> Json.Util.to_string in
   let contribs = json / "data" / "viewer" / "contributionsCollection" in
   let items =
     read_issues  (contribs / "issueContributions") @
@@ -130,13 +134,16 @@ let of_json ~from json =
     read_reviews (contribs / "pullRequestReviewContributions") @
     read_repos   (contribs / "repositoryContributions")
   in
-  (* GitHub seems to ignore the time part, so do the filtering here. *)
-  items
-  |> List.filter (fun item -> item.date >= from)
-  |> List.fold_left (fun acc item ->
-      let items = Repo_map.find_opt item.repo acc |> Option.value ~default:[] in
-      Repo_map.add item.repo (item :: items) acc
-    ) Repo_map.empty
+  let activity =
+    (* GitHub seems to ignore the time part, so do the filtering here. *)
+    items
+    |> List.filter (fun item -> item.date >= from)
+    |> List.fold_left (fun acc item ->
+        let items = Repo_map.find_opt item.repo acc |> Option.value ~default:[] in
+        Repo_map.add item.repo (item :: items) acc
+      ) Repo_map.empty
+  in
+  { username; activity }
 
 let id url =
   match Astring.String.cut ~sep:"/" ~rev:true url with
@@ -171,12 +178,10 @@ let pp_items = Fmt.(list ~sep:(cut ++ cut) pp_item)
 let pp_repo f (name, items) =
   Fmt.pf f "### %s@,@,%a" name pp_items items
 
-type t = item list Repo_map.t
+let is_empty { activity; _} = Repo_map.is_empty activity
 
-let is_empty = Repo_map.is_empty
-
-let pp f t =
-  let by_repo = Repo_map.bindings t in
+let pp f { activity; _ } =
+  let by_repo = Repo_map.bindings activity in
   match by_repo with
   | [] -> Fmt.string f "(no activity)"
   | [(_, items)] -> pp_items f items

@@ -1,5 +1,3 @@
-type t
-
 module Datetime : sig
   type t = string
 end
@@ -14,6 +12,8 @@ type item = {
 }
 
 module Repo_map : Map.S with type key = string
+
+type t = { username : string; activity : item list Repo_map.t }
 
 val fetch : period:(string * string) -> token:Token.t -> Yojson.Safe.t
 
