@@ -61,7 +61,7 @@ let fetch ~period:(start, finish) ~token =
         "from", `String start;
         "to", `String finish;
     ] in
-    Graphql.exec token ~variables query
+    Graphql.exec ~token ~variables ~query ()
   end
 
 module Datetime = struct
