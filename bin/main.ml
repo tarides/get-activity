@@ -1,3 +1,5 @@
+open Get_activity
+
 let ( / ) = Filename.concat
 
 let or_die = function

@@ -1,0 +1,5 @@
+(executable
+ (name main)
+ (public_name get-activity)
+ (package get-activity)
+ (libraries cmdliner get-activity-lib))
