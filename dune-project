@@ -1,6 +1,5 @@
 (lang dune 2.8)
 (name get-activity)
-(formatting disabled)
 (generate_opam_files true)
 (source (github tarides/get-activity))
 (authors "talex5@gmail.com")

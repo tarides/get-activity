@@ -5,8 +5,8 @@ let ( / ) = Filename.concat
 let or_die = function
   | Ok x -> x
   | Error (`Msg m) ->
-    Fmt.epr "%s@." m;
-    exit 1
+      Fmt.epr "%s@." m;
+      exit 1
 
 let home =
   match Sys.getenv_opt "HOME" with
@@ -15,9 +15,8 @@ let home =
 
 let ensure_dir_exists ~mode path =
   match Unix.stat path with
-  | exception Unix.Unix_error(Unix.ENOENT, _, _) ->
-    Unix.mkdir path mode
-  | Unix.{ st_kind = S_DIR; _} -> ()
+  | exception Unix.Unix_error (Unix.ENOENT, _, _) -> Unix.mkdir path mode
+  | Unix.{ st_kind = S_DIR; _ } -> ()
   | _ -> Fmt.failwith "%S is not a directory!" path
 
 let last_fetch_file =
@@ -28,17 +27,15 @@ let last_fetch_file =
 let mtime path =
   match Unix.stat path with
   | info -> Some info.Unix.st_mtime
-  | exception Unix.Unix_error(Unix.ENOENT, _, _) -> None
+  | exception Unix.Unix_error (Unix.ENOENT, _, _) -> None
 
-let get_token () =
-  Token.load (home / ".github" / "github-activity-token")
+let get_token () = Token.load (home / ".github" / "github-activity-token")
 
 let show ~from json =
   let contribs = Contributions.of_json ~from json in
   if Contributions.is_empty contribs then
     Fmt.epr "(no activity found since %s)@." from
-  else
-    Fmt.pr "@[<v>%a@]@." Contributions.pp contribs
+  else Fmt.pr "@[<v>%a@]@." Contributions.pp contribs
 
 let mode = `Normal
 
@@ -74,21 +71,21 @@ let info = Cmd.info "get-activity"
 let run period : unit =
   match mode with
   | `Normal ->
-    Period.with_period period ~last_fetch_file ~f:(fun period ->
-        (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
-        let token = get_token () |> or_die in
-        show ~from:(fst period) @@ Contributions.fetch ~period ~token
-      )
+      Period.with_period period ~last_fetch_file ~f:(fun period ->
+          (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
+          let token = get_token () |> or_die in
+          show ~from:(fst period) @@ Contributions.fetch ~period ~token)
   | `Save ->
-    Period.with_period period ~last_fetch_file ~f:(fun period ->
-        let token = get_token () |> or_die in
-        Contributions.fetch ~period ~token
-        |> Yojson.Safe.to_file "activity.json"
-      )
+      Period.with_period period ~last_fetch_file ~f:(fun period ->
+          let token = get_token () |> or_die in
+          Contributions.fetch ~period ~token
+          |> Yojson.Safe.to_file "activity.json")
   | `Load ->
-    (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
-    let from = mtime last_fetch_file |> Option.value ~default:0.0 |> Period.to_8601 in
-    show ~from @@ Yojson.Safe.from_file "activity.json"
+      (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
+      let from =
+        mtime last_fetch_file |> Option.value ~default:0.0 |> Period.to_8601
+      in
+      show ~from @@ Yojson.Safe.from_file "activity.json"
 
 let term = Term.(const run $ period)
 let cmd = Cmd.v info term
