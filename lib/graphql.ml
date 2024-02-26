@@ -4,7 +4,7 @@ let graphql_endpoint = Uri.of_string "https://api.github.com/graphql"
 
 let ( / ) a b = Yojson.Safe.Util.member b a
 
-let exec ?variables token query =
+let exec ?variables ~token ~query () =
   let body =
     `Assoc (
       ("query", `String query) ::

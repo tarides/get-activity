@@ -1,4 +1,0 @@
-(executable
- (name main)
- (public_name get-activity)
- (libraries cohttp cohttp-lwt cohttp-lwt-unix yojson cmdliner))

@@ -7,8 +7,11 @@ homepage: "https://github.com/tarides/get-activity"
 bug-reports: "https://github.com/tarides/get-activity/issues"
 depends: [
   "dune" {>= "2.8"}
-  "cmdliner" {>= "1.1.1"}
-  "get-activity" {= version}
+  "cohttp"
+  "cohttp-lwt"
+  "cohttp-lwt-unix"
+  "yojson"
+  "ocaml" {>= "4.08"}
   "odoc" {with-doc}
 ]
 build: [
