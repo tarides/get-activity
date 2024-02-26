@@ -11,7 +11,7 @@
  (synopsis "Collect activity as markdown")
  (depends
   (cmdliner (>= 1.1.1))
-  get-activity  (= :version)))
+  (get-activity (= :version))))
 
 (package
  (name get-activity-lib)
