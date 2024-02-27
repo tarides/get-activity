@@ -37,13 +37,10 @@ This renders as:
 
 ## Installation
 
-Install [opam][] if you don't already have it and then:
-
+Install [opam][] if you don't already have it, and set up [`tarides/opam-repository`](https://github.com/tarides/opam-repository).
+Then you can install get-activity with: 
 ```
-git clone https://github.com/talex5/get-activity.git
-cd get-activity
-opam pin -n get-activity.dev .
-opam depext -i get-activity
+opam install get-activity
 ```
 
 ## Activity sources
