@@ -1,3 +1,11 @@
+## unreleased
+
+### Changed
+
+- Replace exceptions by result types for the requests (#<PR_NUMBER>, @gpetiot)
+  + `Graphql.exec` now returns `_ result Lwt.t`
+  + `Contributions.fetch` now returns `_ result`
+
 ## 0.2.0
 
 ### Added

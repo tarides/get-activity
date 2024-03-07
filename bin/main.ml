@@ -8,6 +8,8 @@ let or_die = function
       Fmt.epr "%s@." m;
       exit 1
 
+let ( let* ) x y = y @@ or_die x
+
 let home =
   match Sys.getenv_opt "HOME" with
   | None -> Fmt.failwith "$HOME is not set!"
@@ -73,13 +75,14 @@ let run period : unit =
   | `Normal ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
-          let token = get_token () |> or_die in
-          show ~from:(fst period) @@ Contributions.fetch ~period ~token)
+          let* token = get_token () in
+          let* contributions = Contributions.fetch ~period ~token in
+          show ~from:(fst period) contributions)
   | `Save ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
-          let token = get_token () |> or_die in
-          Contributions.fetch ~period ~token
-          |> Yojson.Safe.to_file "activity.json")
+          let* token = get_token () in
+          let* contributions = Contributions.fetch ~period ~token in
+          Yojson.Safe.to_file "activity.json" contributions)
   | `Load ->
       (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
       let from =
