@@ -16,6 +16,7 @@
  (name get-activity-lib)
  (synopsis "Collect activity as markdown")
  (depends
+  (alcotest :with-test)
   astring
   curly
   fmt
