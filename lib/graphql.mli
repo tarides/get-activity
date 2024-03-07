@@ -3,4 +3,4 @@ val exec :
   token:string ->
   query:string ->
   unit ->
-  Yojson.Safe.t Lwt.t
+  (Yojson.Safe.t, [ `Msg of string ]) result Lwt.t

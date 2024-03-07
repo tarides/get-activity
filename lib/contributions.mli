@@ -15,7 +15,10 @@ module Repo_map : Map.S with type key = string
 
 type t = { username : string; activity : item list Repo_map.t }
 
-val fetch : period:string * string -> token:Token.t -> Yojson.Safe.t
+val fetch :
+  period:string * string ->
+  token:Token.t ->
+  (Yojson.Safe.t, [ `Msg of string ]) result
 
 val of_json : from:string -> Yojson.Safe.t -> t
 (** We pass [from] again here so we can filter out anything that GitHub included by accident. *)

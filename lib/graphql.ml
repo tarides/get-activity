@@ -21,12 +21,17 @@ let exec ?variables ~token ~query () =
   | `OK -> (
       let json = Yojson.Safe.from_string body in
       match json / "errors" with
-      | `Null -> json
+      | `Null -> Ok json
       | _errors ->
-          Fmt.failwith "@[<v2>GitHub returned errors: %a@]"
-            (Yojson.Safe.pretty_print ~std:true)
-            json)
+          Error
+            (`Msg
+              (Format.asprintf "@[<v2>GitHub returned errors: %a@]"
+                 (Yojson.Safe.pretty_print ~std:true)
+                 json)))
   | err ->
-      Fmt.failwith "@[<v2>Error performing GraphQL query on GitHub: %s@,%s@]"
-        (Cohttp.Code.string_of_status err)
-        body
+      Error
+        (`Msg
+          (Format.asprintf
+             "@[<v2>Error performing GraphQL query on GitHub: %s@,%s@]"
+             (Cohttp.Code.string_of_status err)
+             body))
