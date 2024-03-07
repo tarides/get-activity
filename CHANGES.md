@@ -3,8 +3,11 @@
 ### Changed
 
 - Replace exceptions by result types for the requests (#11, @gpetiot)
-  + `Graphql.exec` now returns `_ result Lwt.t`
-  + `Contributions.fetch` now returns `_ result`
+- Depends on `curly` instead of `cohttp-lwt-unix` (#<PR_NUMBER>, @gpetiot)
+- Redesign the graphql requests (#<PR_NUMBER>, @gpetiot)
+  + `Graphql.request` builds a `request`
+  + `Graphql.exec` now takes a `request`
+  + `Contributions.fetch` has been replaced by `Contributions.request` that builds a `request`
 
 ## 0.2.0
 

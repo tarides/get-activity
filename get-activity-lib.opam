@@ -7,9 +7,9 @@ homepage: "https://github.com/tarides/get-activity"
 bug-reports: "https://github.com/tarides/get-activity/issues"
 depends: [
   "dune" {>= "2.8"}
-  "cohttp"
-  "cohttp-lwt"
-  "cohttp-lwt-unix"
+  "astring"
+  "curly"
+  "fmt"
   "yojson"
   "ocaml" {>= "4.08"}
   "odoc" {with-doc}

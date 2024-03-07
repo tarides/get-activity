@@ -1,9 +1,13 @@
-open Lwt.Infix
-
-let graphql_endpoint = Uri.of_string "https://api.github.com/graphql"
 let ( / ) a b = Yojson.Safe.Util.member b a
 
-let exec ?variables ~token ~query () =
+type request = {
+  meth : Curly.Meth.t;
+  url : string;
+  headers : Curly.Header.t;
+  body : Yojson.Safe.t;
+}
+
+let request ?variables ~token ~query () =
   let body =
     `Assoc
       (("query", `String query)
@@ -11,27 +15,31 @@ let exec ?variables ~token ~query () =
       (match variables with
       | None -> []
       | Some v -> [ ("variables", `Assoc v) ]))
-    |> Yojson.Safe.to_string |> Cohttp_lwt.Body.of_string
   in
-  let headers = Cohttp.Header.init_with "Authorization" ("bearer " ^ token) in
-  Cohttp_lwt_unix.Client.post ~headers ~body graphql_endpoint
-  >>= fun (resp, body) ->
-  Cohttp_lwt.Body.to_string body >|= fun body ->
-  match Cohttp.Response.status resp with
-  | `OK -> (
+  let url = "https://api.github.com/graphql" in
+  let headers = [ ("Authorization", "bearer " ^ token) ] in
+  { meth = `POST; url; headers; body }
+
+let exec request =
+  let { meth; url; headers; body } = request in
+  let body = Yojson.Safe.to_string body in
+  let request = Curly.Request.make ~headers ~body ~url ~meth () in
+  match Curly.run request with
+  | Ok { Curly.Response.body; _ } -> (
       let json = Yojson.Safe.from_string body in
-      match json / "errors" with
+      match json / "message" with
       | `Null -> Ok json
+      | `String e ->
+          Error (`Msg (Format.asprintf "@[<v2>GitHub returned errors: %s@]" e))
       | _errors ->
           Error
             (`Msg
               (Format.asprintf "@[<v2>GitHub returned errors: %a@]"
                  (Yojson.Safe.pretty_print ~std:true)
                  json)))
-  | err ->
+  | Error e ->
       Error
         (`Msg
           (Format.asprintf
-             "@[<v2>Error performing GraphQL query on GitHub: %s@,%s@]"
-             (Cohttp.Code.string_of_status err)
-             body))
+             "@[<v2>Error performing GraphQL query on GitHub: %a@]"
+             Curly.Error.pp e))

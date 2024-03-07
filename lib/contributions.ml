@@ -3,7 +3,7 @@ module Json = Yojson.Safe
 let ( / ) a b = Json.Util.member b a
 
 let query =
-  {| query($from: DateTime!, $to: DateTime!) {
+  {|query($from: DateTime!, $to: DateTime!) {
    viewer {
     login
     contributionsCollection(from: $from, to: $to) {
@@ -55,10 +55,9 @@ let query =
   }
 }|}
 
-let fetch ~period:(start, finish) ~token =
-  Lwt_main.run
-    (let variables = [ ("from", `String start); ("to", `String finish) ] in
-     Graphql.exec ~token ~variables ~query ())
+let request ~period:(start, finish) ~token =
+  let variables = [ ("from", `String start); ("to", `String finish) ] in
+  Graphql.request ~token ~variables ~query ()
 
 module Datetime = struct
   type t = string

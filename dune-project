@@ -16,8 +16,8 @@
  (name get-activity-lib)
  (synopsis "Collect activity as markdown")
  (depends
-  cohttp
-  cohttp-lwt
-  cohttp-lwt-unix
+  astring
+  curly
+  fmt
   yojson
   (ocaml (>= 4.08))))

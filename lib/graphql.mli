@@ -1,6 +1,15 @@
-val exec :
+type request = {
+  meth : Curly.Meth.t;
+  url : string;
+  headers : Curly.Header.t;
+  body : Yojson.Safe.t;
+}
+
+val request :
   ?variables:(string * Yojson.Safe.t) list ->
   token:string ->
   query:string ->
   unit ->
-  (Yojson.Safe.t, [ `Msg of string ]) result Lwt.t
+  request
+
+val exec : request -> (Yojson.Safe.t, [ `Msg of string ]) result
