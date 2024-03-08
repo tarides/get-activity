@@ -1,0 +1,4 @@
+(test
+ (name main)
+ (package get-activity-lib)
+ (libraries get-activity-lib alcotest))
