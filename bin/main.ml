@@ -68,7 +68,12 @@ let period =
   in
   Term.(const f $ from $ to_ $ last_week)
 
-let info = Cmd.info "get-activity"
+let version =
+  match Build_info.V1.version () with
+  | None -> "dev"
+  | Some v -> Build_info.V1.Version.to_string v
+
+let info = Cmd.info "get-activity" ~version
 
 let run period : unit =
   match mode with

@@ -10,6 +10,7 @@
  (synopsis "Collect activity as markdown")
  (depends
   (cmdliner (>= 1.1.1))
+  dune-build-info
   (get-activity-lib (= :version))))
 
 (package

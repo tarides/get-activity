@@ -1,5 +1,9 @@
 ## unreleased
 
+### Added
+
+- Add the `--version` command-line option (#13, @gpetiot)
+
 ### Changed
 
 - Replace exceptions by result types for the requests (#11, @gpetiot)
