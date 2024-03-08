@@ -76,12 +76,14 @@ let run period : unit =
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
           let* token = get_token () in
-          let* contributions = Contributions.fetch ~period ~token in
+          let request = Contributions.request ~period ~token in
+          let* contributions = Graphql.exec request in
           show ~from:(fst period) contributions)
   | `Save ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
-          let* contributions = Contributions.fetch ~period ~token in
+          let request = Contributions.request ~period ~token in
+          let* contributions = Graphql.exec request in
           Yojson.Safe.to_file "activity.json" contributions)
   | `Load ->
       (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
