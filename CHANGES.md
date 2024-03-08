@@ -2,7 +2,7 @@
 
 ### Added
 
-- Add the `--version` command-line option (#<PR_NUMBER>, @gpetiot)
+- Add the `--version` command-line option (#13, @gpetiot)
 
 ### Changed
 
