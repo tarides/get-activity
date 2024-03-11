@@ -3,7 +3,7 @@
 ### Added
 
 - Add the `--version` command-line option (#13, @gpetiot)
-- Add a `--user` option to extract the activity of an engineer that is not the current user (#<PR_NUMBER>, @gpetiot)
+- Add a `--user` option to extract the activity of an engineer that is not the current user (#14, @gpetiot)
 
 ### Changed
 
