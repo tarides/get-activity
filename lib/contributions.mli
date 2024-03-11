@@ -15,9 +15,13 @@ module Repo_map : Map.S with type key = string
 
 type t = { username : string; activity : item list Repo_map.t }
 
-val request : period:string * string -> token:Token.t -> Graphql.request
+val request :
+  period:string * string ->
+  user:string option ->
+  token:Token.t ->
+  Graphql.request
 
-val of_json : from:string -> Yojson.Safe.t -> t
+val of_json : from:string -> user:string option -> Yojson.Safe.t -> t
 (** We pass [from] again here so we can filter out anything that GitHub included by accident. *)
 
 val is_empty : t -> bool

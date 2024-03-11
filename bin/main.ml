@@ -33,8 +33,8 @@ let mtime path =
 
 let get_token () = Token.load (home / ".github" / "github-activity-token")
 
-let show ~from json =
-  let contribs = Contributions.of_json ~from json in
+let show ~from ~user json =
+  let contribs = Contributions.of_json ~from ~user json in
   if Contributions.is_empty contribs then
     Fmt.epr "(no activity found since %s)@." from
   else Fmt.pr "@[<v>%a@]@." Contributions.pp contribs
@@ -68,6 +68,10 @@ let period =
   in
   Term.(const f $ from $ to_ $ last_week)
 
+let user =
+  let doc = Arg.info ~doc:"User name" [ "user" ] in
+  Arg.(value & opt (some string) None & doc)
+
 let version =
   match Build_info.V1.version () with
   | None -> "dev"
@@ -75,19 +79,19 @@ let version =
 
 let info = Cmd.info "get-activity" ~version
 
-let run period : unit =
+let run period user : unit =
   match mode with
   | `Normal ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
           let* token = get_token () in
-          let request = Contributions.request ~period ~token in
+          let request = Contributions.request ~period ~user ~token in
           let* contributions = Graphql.exec request in
-          show ~from:(fst period) contributions)
+          show ~from:(fst period) ~user contributions)
   | `Save ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
-          let request = Contributions.request ~period ~token in
+          let request = Contributions.request ~period ~user ~token in
           let* contributions = Graphql.exec request in
           Yojson.Safe.to_file "activity.json" contributions)
   | `Load ->
@@ -95,8 +99,8 @@ let run period : unit =
       let from =
         mtime last_fetch_file |> Option.value ~default:0.0 |> Period.to_8601
       in
-      show ~from @@ Yojson.Safe.from_file "activity.json"
+      show ~from ~user @@ Yojson.Safe.from_file "activity.json"
 
-let term = Term.(const run $ period)
+let term = Term.(const run $ period $ user)
 let cmd = Cmd.v info term
 let () = Stdlib.exit @@ Cmd.eval cmd

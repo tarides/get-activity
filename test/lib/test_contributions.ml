@@ -83,29 +83,10 @@ module Testable = struct
   let contributions = Contributions.testable
 end
 
-let test_request =
-  let make_test name ~period ~token ~expected =
-    let name = Printf.sprintf "request: %s" name in
-    let test_fun () =
-      let actual = Contributions.request ~period ~token in
-      Alcotest.(check Alcotest_ext.request) name expected actual
-    in
-    (name, `Quick, test_fun)
-  in
-  [
-    make_test "no token" ~token:"" ~period:("", "")
-      ~expected:
-        {
-          meth = `POST;
-          url = "https://api.github.com/graphql";
-          headers = [ ("Authorization", "bearer ") ];
-          body =
-            `Assoc
-              [
-                ( "query",
-                  `String
-                    {|query($from: DateTime!, $to: DateTime!) {
-   viewer {
+let request ~user =
+  Format.sprintf
+    {|query($from: DateTime!, $to: DateTime!) {
+   %s {
     login
     contributionsCollection(from: $from, to: $to) {
       issueContributions(first: 100) {
@@ -155,19 +136,61 @@ let test_request =
     }
   }
 }|}
-                );
-                ( "variables",
-                  `Assoc [ ("from", `String ""); ("to", `String "") ] );
-              ];
-        };
+    (match user with
+    | Some u -> Format.sprintf "user(login: %S)" u
+    | None -> "viewer")
+
+let test_request =
+  let make_test name ~period ~user ~token ~expected =
+    let name = Printf.sprintf "request: %s" name in
+    let test_fun () =
+      let actual = Contributions.request ~period ~user ~token in
+      Alcotest.(check Alcotest_ext.request) name expected actual
+    in
+    (name, `Quick, test_fun)
+  in
+  [
+    (let user = None in
+     make_test "no token" ~user ~token:"" ~period:("", "")
+       ~expected:
+         {
+           meth = `POST;
+           url = "https://api.github.com/graphql";
+           headers = [ ("Authorization", "bearer ") ];
+           body =
+             `Assoc
+               [
+                 ("query", `String (request ~user));
+                 ( "variables",
+                   `Assoc [ ("from", `String ""); ("to", `String "") ] );
+               ];
+         });
+    (let user = Some "me" in
+     make_test "no token" ~user ~token:"" ~period:("", "")
+       ~expected:
+         {
+           meth = `POST;
+           url = "https://api.github.com/graphql";
+           headers = [ ("Authorization", "bearer ") ];
+           body =
+             `Assoc
+               [
+                 ("query", `String (request ~user));
+                 ( "variables",
+                   `Assoc [ ("from", `String ""); ("to", `String "") ] );
+               ];
+         });
   ]
 
-let activity_example =
-  {|
+let or_viewer = function Some u -> u | None -> "gpetiot"
+
+let activity_example ~user =
+  Format.sprintf
+    {|
 {
   "data": {
-    "viewer": {
-      "login": "gpetiot",
+    %S: {
+      "login": %S,
       "contributionsCollection": {
         "issueContributions": {
           "nodes": [
@@ -282,13 +305,16 @@ let activity_example =
   }
 }
 |}
+    (match user with Some _ -> "user" | None -> "viewer")
+    (user |> or_viewer)
 
-let activity_example_json = Yojson.Safe.from_string activity_example
+let activity_example_json ~user =
+  Yojson.Safe.from_string (activity_example ~user)
 
-let contributions_example =
+let contributions_example ~user =
   let open Contributions in
   {
-    username = "gpetiot";
+    username = user |> or_viewer;
     activity =
       Repo_map.empty
       |> Repo_map.add "gpetiot/config.ml"
@@ -379,17 +405,23 @@ let contributions_example =
   }
 
 let test_of_json =
-  let make_test name ~from json ~expected =
+  let make_test name ~from ~user json ~expected =
     let name = Printf.sprintf "of_json: %s" name in
     let test_fun () =
-      let actual = Contributions.of_json ~from json in
+      let actual = Contributions.of_json ~from ~user json in
       Alcotest.(check Testable.contributions) name expected actual
     in
     (name, `Quick, test_fun)
   in
   [
-    make_test "no token" ~from:"" activity_example_json
-      ~expected:contributions_example;
+    (let user = None in
+     make_test "no token" ~from:"" ~user
+       (activity_example_json ~user)
+       ~expected:(contributions_example ~user));
+    (let user = Some "gpetiot" in
+     make_test "no token" ~from:"" ~user
+       (activity_example_json ~user)
+       ~expected:(contributions_example ~user));
   ]
 
 let test_is_empty =
@@ -406,7 +438,9 @@ let test_is_empty =
       ~input:
         { Contributions.username = ""; activity = Contributions.Repo_map.empty }
       ~expected:true;
-    make_test "not empty" ~input:contributions_example ~expected:false;
+    make_test "not empty"
+      ~input:(contributions_example ~user:None)
+      ~expected:false;
   ]
 
 let test_pp =
@@ -423,7 +457,8 @@ let test_pp =
       ~input:
         { Contributions.username = ""; activity = Contributions.Repo_map.empty }
       ~expected:"(no activity)";
-    make_test "not empty" ~input:contributions_example
+    make_test "not empty"
+      ~input:(contributions_example ~user:None)
       ~expected:
         "### gpetiot/config.ml\n\
          Created repository \
