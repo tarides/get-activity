@@ -3,9 +3,9 @@ module Json = Yojson.Safe
 let ( / ) a b = Json.Util.member b a
 
 let query user =
-  Format.sprintf
+  Format.asprintf
     {|query($from: DateTime!, $to: DateTime!) {
-   %s {
+   %a {
     login
     contributionsCollection(from: $from, to: $to) {
       issueContributions(first: 100) {
@@ -55,9 +55,7 @@ let query user =
     }
   }
 }|}
-    (match user with
-    | Some u -> Format.sprintf "user(login: %S)" u
-    | None -> "viewer")
+    User.query user
 
 let request ~period:(start, finish) ~user ~token =
   let variables = [ ("from", `String start); ("to", `String finish) ] in
@@ -143,17 +141,11 @@ let read_repos json =
      }
 
 let of_json ~from ~user json =
-  let username, contribs =
-    match user with
-    | Some username ->
-        let contribs = json / "data" / "user" / "contributionsCollection" in
-        (username, contribs)
-    | None ->
-        let username =
-          json / "data" / "viewer" / "login" |> Json.Util.to_string
-        in
-        let contribs = json / "data" / "viewer" / "contributionsCollection" in
-        (username, contribs)
+  let username =
+    json / "data" / User.response_field user / "login" |> Json.Util.to_string
+  in
+  let contribs =
+    json / "data" / User.response_field user / "contributionsCollection"
   in
   let items =
     read_issues (contribs / "issueContributions")

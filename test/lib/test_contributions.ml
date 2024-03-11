@@ -84,9 +84,9 @@ module Testable = struct
 end
 
 let request ~user =
-  Format.sprintf
+  Format.asprintf
     {|query($from: DateTime!, $to: DateTime!) {
-   %s {
+   %a {
     login
     contributionsCollection(from: $from, to: $to) {
       issueContributions(first: 100) {
@@ -136,9 +136,7 @@ let request ~user =
     }
   }
 }|}
-    (match user with
-    | Some u -> Format.sprintf "user(login: %S)" u
-    | None -> "viewer")
+    User.query user
 
 let test_request =
   let make_test name ~period ~user ~token ~expected =
@@ -150,7 +148,7 @@ let test_request =
     (name, `Quick, test_fun)
   in
   [
-    (let user = None in
+    (let user = User.Viewer in
      make_test "no token" ~user ~token:"" ~period:("", "")
        ~expected:
          {
@@ -165,7 +163,7 @@ let test_request =
                    `Assoc [ ("from", `String ""); ("to", `String "") ] );
                ];
          });
-    (let user = Some "me" in
+    (let user = User.User "me" in
      make_test "no token" ~user ~token:"" ~period:("", "")
        ~expected:
          {
@@ -182,7 +180,7 @@ let test_request =
          });
   ]
 
-let or_viewer = function Some u -> u | None -> "gpetiot"
+let or_viewer = function User.User u -> u | Viewer -> "gpetiot"
 
 let activity_example ~user =
   Format.sprintf
@@ -305,8 +303,7 @@ let activity_example ~user =
   }
 }
 |}
-    (match user with Some _ -> "user" | None -> "viewer")
-    (user |> or_viewer)
+    (User.response_field user) (user |> or_viewer)
 
 let activity_example_json ~user =
   Yojson.Safe.from_string (activity_example ~user)
@@ -414,11 +411,11 @@ let test_of_json =
     (name, `Quick, test_fun)
   in
   [
-    (let user = None in
+    (let user = User.Viewer in
      make_test "no token" ~from:"" ~user
        (activity_example_json ~user)
        ~expected:(contributions_example ~user));
-    (let user = Some "gpetiot" in
+    (let user = User.User "gpetiot" in
      make_test "no token" ~from:"" ~user
        (activity_example_json ~user)
        ~expected:(contributions_example ~user));
@@ -439,7 +436,7 @@ let test_is_empty =
         { Contributions.username = ""; activity = Contributions.Repo_map.empty }
       ~expected:true;
     make_test "not empty"
-      ~input:(contributions_example ~user:None)
+      ~input:(contributions_example ~user:Viewer)
       ~expected:false;
   ]
 
@@ -458,7 +455,7 @@ let test_pp =
         { Contributions.username = ""; activity = Contributions.Repo_map.empty }
       ~expected:"(no activity)";
     make_test "not empty"
-      ~input:(contributions_example ~user:None)
+      ~input:(contributions_example ~user:Viewer)
       ~expected:
         "### gpetiot/config.ml\n\
          Created repository \

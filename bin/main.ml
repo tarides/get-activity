@@ -68,9 +68,18 @@ let period =
   in
   Term.(const f $ from $ to_ $ last_week)
 
-let user =
+let user : User.t Term.t =
+  let str_parser, str_printer = Arg.string in
+  let parser x =
+    match str_parser x with `Ok x -> `Ok (User.User x) | `Error e -> `Error e
+  in
+  let printer fs = function
+    | User.Viewer -> str_printer fs "viewer"
+    | User x -> str_printer fs x
+  in
+  let user_conv = (parser, printer) in
   let doc = Arg.info ~doc:"User name" [ "user" ] in
-  Arg.(value & opt (some string) None & doc)
+  Arg.(value & opt user_conv Viewer & doc)
 
 let version =
   match Build_info.V1.version () with
