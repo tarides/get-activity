@@ -2,9 +2,10 @@ module Json = Yojson.Safe
 
 let ( / ) a b = Json.Util.member b a
 
-let query =
-  {|query($from: DateTime!, $to: DateTime!) {
-   viewer {
+let query user =
+  Format.asprintf
+    {|query($from: DateTime!, $to: DateTime!) {
+   %a {
     login
     contributionsCollection(from: $from, to: $to) {
       issueContributions(first: 100) {
@@ -54,9 +55,11 @@ let query =
     }
   }
 }|}
+    User.query user
 
-let request ~period:(start, finish) ~token =
+let request ~period:(start, finish) ~user ~token =
   let variables = [ ("from", `String start); ("to", `String finish) ] in
+  let query = query user in
   Graphql.request ~token ~variables ~query ()
 
 module Datetime = struct
@@ -137,9 +140,13 @@ let read_repos json =
        repo;
      }
 
-let of_json ~from json =
-  let username = json / "data" / "viewer" / "login" |> Json.Util.to_string in
-  let contribs = json / "data" / "viewer" / "contributionsCollection" in
+let of_json ~from ~user json =
+  let username =
+    json / "data" / User.response_field user / "login" |> Json.Util.to_string
+  in
+  let contribs =
+    json / "data" / User.response_field user / "contributionsCollection"
+  in
   let items =
     read_issues (contribs / "issueContributions")
     @ read_prs (contribs / "pullRequestContributions")

@@ -3,6 +3,7 @@
 ### Added
 
 - Add the `--version` command-line option (#13, @gpetiot)
+- Add a `--user` option to extract the activity of an engineer that is not the current user (#14, @gpetiot)
 
 ### Changed
 
@@ -11,6 +12,7 @@
 - Redesign the graphql requests (#12, @gpetiot)
   + `Graphql.exec` now takes a `request`
   + `Contributions.fetch` has been replaced by `Contributions.request` that builds a `request`
+- Add a `~user:User.t` parameter to `Contributions.request` and `Contributions.of_json` (#14, @gpetiot)
 
 ## 0.2.0
 
