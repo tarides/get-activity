@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://ocaml.ci.dev/github/tarides/get-activity">
-    <img src="https://img.shields.io/endpoint?url=https://ocaml.ci.dev/badge/tarides/get-activity/master&logo=ocaml" alt="OCaml-CI Build Status" />
+    <img src="https://img.shields.io/endpoint?url=https://ocaml.ci.dev/badge/tarides/get-activity/main&logo=ocaml" alt="OCaml-CI Build Status" />
   </a>
 </p>
 
