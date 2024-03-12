@@ -20,6 +20,6 @@
   (alcotest :with-test)
   astring
   curly
-  fmt
-  yojson
+  (fmt (>= 0.8.7))
+  (yojson (>= 1.6))
   (ocaml (>= 4.08))))
