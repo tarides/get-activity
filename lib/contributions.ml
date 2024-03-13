@@ -1,5 +1,6 @@
 module Json = Yojson.Safe
 
+let ( let* ) = Result.bind
 let ( / ) a b = Json.Util.member b a
 
 let query user =
@@ -66,8 +67,8 @@ module Datetime = struct
   type t = string
 
   let parse = function
-    | `String s -> s
-    | x -> Fmt.failwith "Invalid Datatime %a" Json.pp x
+    | `String s -> Ok s
+    | x -> Error (`Msg (Fmt.str "Invalid Datatime %a" Json.pp x))
 end
 
 module Repo_map = Map.Make (String)
@@ -83,75 +84,84 @@ type item = {
 
 type t = { username : string; activity : item list Repo_map.t }
 
+let to_string x =
+  Json.Util.to_string_option x
+  |> Option.to_result ~none:(`Msg (Fmt.str "Expected string, got %a" Json.pp x))
+
+let combine lx =
+  List.fold_left
+    (fun acc x ->
+      let* acc = acc in
+      let* x = x in
+      Ok (x :: acc))
+    (Ok []) lx
+
 let read_issues json =
   Json.Util.to_list (json / "nodes")
   |> List.filter (( <> ) `Null)
-  |> List.map @@ fun node ->
-     let date = Datetime.parse (node / "occurredAt") in
-     let x = node / "issue" in
-     let url = x / "url" |> Json.Util.to_string in
-     let title = x / "title" |> Json.Util.to_string in
-     let body = x / "body" |> Json.Util.to_string in
-     let repo = x / "repository" / "nameWithOwner" |> Json.Util.to_string in
-     { kind = `Issue; date; url; title; body; repo }
+  |> List.map (fun node ->
+         let* date = Datetime.parse (node / "occurredAt") in
+         let x = node / "issue" in
+         let* url = x / "url" |> to_string in
+         let* title = x / "title" |> to_string in
+         let* body = x / "body" |> to_string in
+         let* repo = x / "repository" / "nameWithOwner" |> to_string in
+         Ok { kind = `Issue; date; url; title; body; repo })
+  |> combine
 
 let read_prs json =
   Json.Util.to_list (json / "nodes")
   |> List.filter (( <> ) `Null)
-  |> List.map @@ fun node ->
-     let date = Datetime.parse (node / "occurredAt") in
-     let pr = node / "pullRequest" in
-     let url = pr / "url" |> Json.Util.to_string in
-     let title = pr / "title" |> Json.Util.to_string in
-     let body = pr / "body" |> Json.Util.to_string in
-     let repo = pr / "repository" / "nameWithOwner" |> Json.Util.to_string in
-     { kind = `PR; date; url; title; body; repo }
+  |> List.map (fun node ->
+         let* date = node / "occurredAt" |> Datetime.parse in
+         let pr = node / "pullRequest" in
+         let* url = pr / "url" |> to_string in
+         let* title = pr / "title" |> to_string in
+         let* body = pr / "body" |> to_string in
+         let* repo = pr / "repository" / "nameWithOwner" |> to_string in
+         Ok { kind = `PR; date; url; title; body; repo })
+  |> combine
 
 let read_reviews json =
   Json.Util.to_list (json / "nodes")
   |> List.filter (( <> ) `Null)
-  |> List.map @@ fun node ->
-     let date = Datetime.parse (node / "occurredAt") in
-     let review = node / "pullRequestReview" in
-     let state = review / "state" |> Json.Util.to_string in
-     let url = review / "url" |> Json.Util.to_string in
-     let pr = review / "pullRequest" in
-     let title = pr / "title" |> Json.Util.to_string in
-     let body = review / "body" |> Json.Util.to_string in
-     let repo =
-       review / "repository" / "nameWithOwner" |> Json.Util.to_string
-     in
-     { kind = `Review state; date; url; title; body; repo }
+  |> List.map (fun node ->
+         let* date = node / "occurredAt" |> Datetime.parse in
+         let review = node / "pullRequestReview" in
+         let* state = review / "state" |> to_string in
+         let* url = review / "url" |> to_string in
+         let pr = review / "pullRequest" in
+         let* title = pr / "title" |> to_string in
+         let* body = review / "body" |> to_string in
+         let* repo = review / "repository" / "nameWithOwner" |> to_string in
+         Ok { kind = `Review state; date; url; title; body; repo })
+  |> combine
 
 let read_repos json =
   Json.Util.to_list (json / "nodes")
   |> List.filter (( <> ) `Null)
-  |> List.map @@ fun node ->
-     let date = Datetime.parse (node / "occurredAt") in
-     let repo = node / "repository" in
-     let url = repo / "url" |> Json.Util.to_string in
-     let repo = repo / "nameWithOwner" |> Json.Util.to_string in
-     {
-       kind = `New_repo;
-       date;
-       url;
-       title = "Created new repository";
-       body = "";
-       repo;
-     }
+  |> List.map (fun node ->
+         let* date = node / "occurredAt" |> Datetime.parse in
+         let repo = node / "repository" in
+         let* url = repo / "url" |> to_string in
+         let* repo = repo / "nameWithOwner" |> to_string in
+         let title = "Created new repository" in
+         Ok { kind = `New_repo; date; url; title; body = ""; repo })
+  |> combine
 
 let of_json ~from ~user json =
-  let username =
-    json / "data" / User.response_field user / "login" |> Json.Util.to_string
+  let* username =
+    json / "data" / User.response_field user / "login" |> to_string
   in
   let contribs =
     json / "data" / User.response_field user / "contributionsCollection"
   in
-  let items =
-    read_issues (contribs / "issueContributions")
-    @ read_prs (contribs / "pullRequestContributions")
-    @ read_reviews (contribs / "pullRequestReviewContributions")
-    @ read_repos (contribs / "repositoryContributions")
+  let* items =
+    let* issues = read_issues (contribs / "issueContributions") in
+    let* prs = read_prs (contribs / "pullRequestContributions") in
+    let* reviews = read_reviews (contribs / "pullRequestReviewContributions") in
+    let* repos = read_repos (contribs / "repositoryContributions") in
+    Ok (issues @ prs @ reviews @ repos)
   in
   let activity =
     (* GitHub seems to ignore the time part, so do the filtering here. *)
@@ -165,7 +175,7 @@ let of_json ~from ~user json =
            Repo_map.add item.repo (item :: items) acc)
          Repo_map.empty
   in
-  { username; activity }
+  Ok { username; activity }
 
 let id url =
   match Astring.String.cut ~sep:"/" ~rev:true url with

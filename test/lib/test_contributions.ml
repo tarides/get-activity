@@ -406,7 +406,8 @@ let test_of_json =
     let name = Printf.sprintf "of_json: %s" name in
     let test_fun () =
       let actual = Contributions.of_json ~from ~user json in
-      Alcotest.(check Testable.contributions) name expected actual
+      Alcotest.(check (Alcotest_ext.or_msg Testable.contributions))
+        name expected actual
     in
     (name, `Quick, test_fun)
   in
@@ -414,11 +415,11 @@ let test_of_json =
     (let user = User.Viewer in
      make_test "no token" ~from:"" ~user
        (activity_example_json ~user)
-       ~expected:(contributions_example ~user));
+       ~expected:(Ok (contributions_example ~user)));
     (let user = User.User "gpetiot" in
      make_test "no token" ~from:"" ~user
        (activity_example_json ~user)
-       ~expected:(contributions_example ~user));
+       ~expected:(Ok (contributions_example ~user)));
   ]
 
 let test_is_empty =
