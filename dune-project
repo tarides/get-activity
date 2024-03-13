@@ -18,7 +18,7 @@
  (synopsis "Collect activity as markdown")
  (depends
   (alcotest :with-test)
-  (ppx-expect :with-test)
+  (ppx_expect :with-test)
   astring
   curly
   (fmt (>= 0.8.7))
