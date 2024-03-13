@@ -1,4 +1,7 @@
 (library
  (name get_activity)
  (public_name get-activity-lib)
- (libraries astring curly fmt yojson))
+ (libraries astring curly fmt yojson)
+ (inline_tests)
+ (preprocess
+  (pps ppx_jane)))

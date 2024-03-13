@@ -8,6 +8,7 @@ bug-reports: "https://github.com/tarides/get-activity/issues"
 depends: [
   "dune" {>= "2.8"}
   "alcotest" {with-test}
+  "ppx-expect" {with-test}
   "astring"
   "curly"
   "fmt" {>= "0.8.7"}
