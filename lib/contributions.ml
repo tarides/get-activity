@@ -180,11 +180,7 @@ let pp_title f t =
   | `Issue -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
   | `PR -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
   | `Review s -> Fmt.pf f "%s %s [#%s](%s)" s t.title (id t.url) t.url
-  | `New_repo -> (
-      match Astring.String.cuts ~sep:"/" t.url |> List.rev with
-      | repo :: org :: _ ->
-          Fmt.pf f "Created repository [%s/%s](%s)" org repo t.url
-      | _ -> Fmt.failwith "Malformed URL %S" t.url)
+  | `New_repo -> Fmt.pf f "Created repository [%s](%s)" t.repo t.url
 
 let pp_body f = function
   | "" -> ()
