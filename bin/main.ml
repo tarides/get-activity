@@ -34,7 +34,7 @@ let mtime path =
 let get_token () = Token.load (home / ".github" / "github-activity-token")
 
 let show ~from ~user json =
-  let contribs = Contributions.of_json ~from ~user json in
+  let* contribs = Contributions.of_json ~from ~user json in
   if Contributions.is_empty contribs then
     Fmt.epr "(no activity found since %s)@." from
   else Fmt.pr "%a@." Contributions.pp contribs
