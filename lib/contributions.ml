@@ -54,6 +54,15 @@ let query user =
         }
       }
     }
+    issueComments(last: 40) {
+      nodes {
+        url
+        publishedAt
+        repository { nameWithOwner }
+        issue { title }
+        body
+      }
+    }
   }
 }|}
     User.query user
@@ -75,7 +84,7 @@ module Repo_map = Map.Make (String)
 
 type item = {
   repo : string;
-  kind : [ `Issue | `PR | `Review of string | `New_repo ];
+  kind : [ `Issue | `Issue_comment | `PR | `Review of string | `New_repo ];
   date : Datetime.t;
   url : string;
   title : string;
@@ -100,13 +109,25 @@ let read_issues json =
   Json.Util.to_list (json / "nodes")
   |> List.filter (( <> ) `Null)
   |> List.map (fun node ->
-         let* date = Datetime.parse (node / "occurredAt") in
+         let* date = node / "occurredAt" |> Datetime.parse in
          let x = node / "issue" in
          let* url = x / "url" |> to_string in
          let* title = x / "title" |> to_string in
          let* body = x / "body" |> to_string in
          let* repo = x / "repository" / "nameWithOwner" |> to_string in
          Ok { kind = `Issue; date; url; title; body; repo })
+  |> combine
+
+let read_issue_comments json =
+  Json.Util.to_list (json / "nodes")
+  |> List.filter (( <> ) `Null)
+  |> List.map (fun node ->
+         let* date = node / "publishedAt" |> Datetime.parse in
+         let* url = node / "url" |> to_string in
+         let* title = node / "issue" / "title" |> to_string in
+         let* body = node / "body" |> to_string in
+         let* repo = node / "repository" / "nameWithOwner" |> to_string in
+         Ok { kind = `Issue_comment; date; url; title; body; repo })
   |> combine
 
 let read_prs json =
@@ -150,18 +171,16 @@ let read_repos json =
   |> combine
 
 let of_json ~from ~user json =
-  let* username =
-    json / "data" / User.response_field user / "login" |> to_string
-  in
-  let contribs =
-    json / "data" / User.response_field user / "contributionsCollection"
-  in
+  let root = json / "data" / User.response_field user in
+  let* username = root / "login" |> to_string in
+  let contribs = root / "contributionsCollection" in
   let* items =
     let* issues = read_issues (contribs / "issueContributions") in
+    let* issue_comments = read_issue_comments (root / "issueComments") in
     let* prs = read_prs (contribs / "pullRequestContributions") in
     let* reviews = read_reviews (contribs / "pullRequestReviewContributions") in
     let* repos = read_repos (contribs / "repositoryContributions") in
-    Ok (issues @ prs @ reviews @ repos)
+    Ok (issues @ issue_comments @ prs @ reviews @ repos)
   in
   let activity =
     (* GitHub seems to ignore the time part, so do the filtering here. *)
@@ -188,6 +207,8 @@ let id url =
 let pp_title f t =
   match t.kind with
   | `Issue -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
+  | `Issue_comment ->
+      Fmt.pf f "Commented on %S [#%s](%s)" t.title (id t.url) t.url
   | `PR -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
   | `Review s -> Fmt.pf f "%s %s [#%s](%s)" s t.title (id t.url) t.url
   | `New_repo -> Fmt.pf f "Created repository [%s](%s)" t.repo t.url
@@ -275,6 +296,15 @@ let contributions_example =
                title = "Title5";
                body = "xxx";
              };
+             {
+               repo = "tarides/okra";
+               kind = `Issue_comment;
+               date = "2024-03-13T11:09:56Z";
+               url =
+                 "https://github.com/tarides/okra/issues/114#issuecomment-1994130584";
+               title = "Title6";
+               body = "xxx";
+             };
            ];
   }
 
@@ -300,4 +330,7 @@ let%expect_test "Contributions.pp" =
     xxx
 
     Title5 [#165](https://github.com/tarides/okra/issues/165).
+    xxx
+
+    Commented on "Title6" [#114](https://github.com/tarides/okra/issues/114#issuecomment-1994130584).
     xxx |}]
