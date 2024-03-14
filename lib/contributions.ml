@@ -207,7 +207,8 @@ let id url =
 let pp_title f t =
   match t.kind with
   | `Issue -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
-  | `Issue_comment -> Fmt.pf f "Commented %S [#%s](%s)" t.title (id t.url) t.url
+  | `Issue_comment ->
+      Fmt.pf f "Commented on %S [#%s](%s)" t.title (id t.url) t.url
   | `PR -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
   | `Review s -> Fmt.pf f "%s %s [#%s](%s)" s t.title (id t.url) t.url
   | `New_repo -> Fmt.pf f "Created repository [%s](%s)" t.repo t.url
@@ -331,5 +332,5 @@ let%expect_test "Contributions.pp" =
     Title5 [#165](https://github.com/tarides/okra/issues/165).
     xxx
 
-    Commented "Title6" [#114](https://github.com/tarides/okra/issues/114#issuecomment-1994130584).
+    Commented on "Title6" [#114](https://github.com/tarides/okra/issues/114#issuecomment-1994130584).
     xxx |}]
