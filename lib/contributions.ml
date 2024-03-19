@@ -1,7 +1,6 @@
-module Json = Yojson.Safe
+module Json = Contributions_json_response
 
 let ( let* ) = Result.bind
-let ( / ) a b = Json.Util.member b a
 
 let query user =
   Format.asprintf
@@ -46,10 +45,7 @@ let query user =
       repositoryContributions(first: 100) {
         nodes {
           occurredAt
-          repository {
-            url
-            nameWithOwner
-          }
+          repository { url nameWithOwner }
         }
       }
     }
@@ -73,10 +69,6 @@ let request ~period:(start, finish) ~user ~token =
 
 module Datetime = struct
   type t = string
-
-  let parse = function
-    | `String s -> Ok s
-    | x -> Error (`Msg (Fmt.str "Invalid Datatime %a" Json.pp x))
 end
 
 module Repo_map = Map.Make (String)
@@ -92,94 +84,74 @@ type item = {
 
 type t = { username : string; activity : item list Repo_map.t }
 
-let to_string x =
-  Json.Util.to_string_option x
-  |> Option.to_result ~none:(`Msg (Fmt.str "Expected string, got %a" Json.pp x))
+let read_issues =
+  List.map (fun (c : Json.issueContribution) ->
+      let date = c.occurredAt in
+      let url = c.issue.url in
+      let title = c.issue.title in
+      let body = c.issue.body in
+      let repo = c.issue.repository.nameWithOwner in
+      { kind = `Issue; date; url; title; body; repo })
 
-let combine lx =
-  List.fold_left
-    (fun acc x ->
-      let* acc = acc in
-      let* x = x in
-      Ok (x :: acc))
-    (Ok []) lx
+let read_issue_comments =
+  List.map (fun (c : Json.issueComment) ->
+      let date = c.publishedAt in
+      let url = c.url in
+      let title = c.issue.title in
+      let body = c.body in
+      let repo = c.repository.nameWithOwner in
+      { kind = `Issue_comment; date; url; title; body; repo })
 
-let read_issues json =
-  Json.Util.to_list (json / "nodes")
-  |> List.filter (( <> ) `Null)
-  |> List.map (fun node ->
-         let* date = node / "occurredAt" |> Datetime.parse in
-         let x = node / "issue" in
-         let* url = x / "url" |> to_string in
-         let* title = x / "title" |> to_string in
-         let* body = x / "body" |> to_string in
-         let* repo = x / "repository" / "nameWithOwner" |> to_string in
-         Ok { kind = `Issue; date; url; title; body; repo })
-  |> combine
+let read_prs =
+  List.map (fun (c : Json.pullRequestContribution) ->
+      let date = c.occurredAt in
+      let url = c.pullRequest.url in
+      let title = c.pullRequest.title in
+      let body = c.pullRequest.body in
+      let repo = c.pullRequest.repository.nameWithOwner in
+      { kind = `PR; date; url; title; body; repo })
 
-let read_issue_comments json =
-  Json.Util.to_list (json / "nodes")
-  |> List.filter (( <> ) `Null)
-  |> List.map (fun node ->
-         let* date = node / "publishedAt" |> Datetime.parse in
-         let* url = node / "url" |> to_string in
-         let* title = node / "issue" / "title" |> to_string in
-         let* body = node / "body" |> to_string in
-         let* repo = node / "repository" / "nameWithOwner" |> to_string in
-         Ok { kind = `Issue_comment; date; url; title; body; repo })
-  |> combine
+let read_reviews =
+  List.map (fun (c : Json.pullRequestReviewContribution) ->
+      let date = c.occurredAt in
+      let state = c.pullRequestReview.state in
+      let url = c.pullRequestReview.url in
+      let title = c.pullRequestReview.pullRequest.title in
+      let body = c.pullRequestReview.body in
+      let repo = c.pullRequestReview.repository.nameWithOwner in
+      { kind = `Review state; date; url; title; body; repo })
 
-let read_prs json =
-  Json.Util.to_list (json / "nodes")
-  |> List.filter (( <> ) `Null)
-  |> List.map (fun node ->
-         let* date = node / "occurredAt" |> Datetime.parse in
-         let pr = node / "pullRequest" in
-         let* url = pr / "url" |> to_string in
-         let* title = pr / "title" |> to_string in
-         let* body = pr / "body" |> to_string in
-         let* repo = pr / "repository" / "nameWithOwner" |> to_string in
-         Ok { kind = `PR; date; url; title; body; repo })
-  |> combine
-
-let read_reviews json =
-  Json.Util.to_list (json / "nodes")
-  |> List.filter (( <> ) `Null)
-  |> List.map (fun node ->
-         let* date = node / "occurredAt" |> Datetime.parse in
-         let review = node / "pullRequestReview" in
-         let* state = review / "state" |> to_string in
-         let* url = review / "url" |> to_string in
-         let pr = review / "pullRequest" in
-         let* title = pr / "title" |> to_string in
-         let* body = review / "body" |> to_string in
-         let* repo = review / "repository" / "nameWithOwner" |> to_string in
-         Ok { kind = `Review state; date; url; title; body; repo })
-  |> combine
-
-let read_repos json =
-  Json.Util.to_list (json / "nodes")
-  |> List.filter (( <> ) `Null)
-  |> List.map (fun node ->
-         let* date = node / "occurredAt" |> Datetime.parse in
-         let repo = node / "repository" in
-         let* url = repo / "url" |> to_string in
-         let* repo = repo / "nameWithOwner" |> to_string in
-         let title = "Created new repository" in
-         Ok { kind = `New_repo; date; url; title; body = ""; repo })
-  |> combine
+let read_repos =
+  List.map (fun (c : Json.repositoryContribution) ->
+      let date = c.occurredAt in
+      let url = c.repository.url in
+      let repo = c.repository.nameWithOwner in
+      let title = "Created new repository" in
+      { kind = `New_repo; date; url; title; body = ""; repo })
 
 let of_json ~from ~user json =
-  let root = json / "data" / User.response_field user in
-  let* username = root / "login" |> to_string in
-  let contribs = root / "contributionsCollection" in
-  let* items =
-    let* issues = read_issues (contribs / "issueContributions") in
-    let* issue_comments = read_issue_comments (root / "issueComments") in
-    let* prs = read_prs (contribs / "pullRequestContributions") in
-    let* reviews = read_reviews (contribs / "pullRequestReviewContributions") in
-    let* repos = read_repos (contribs / "repositoryContributions") in
-    Ok (issues @ issue_comments @ prs @ reviews @ repos)
+  let* json =
+    match Json.t_of_yojson json with
+    | x -> Ok x
+    | exception Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error (exn, _) ->
+        Error (`Msg (Printexc.to_string exn))
+  in
+  let* root =
+    match user with
+    | User.Viewer ->
+        json.data.viewer |> Option.to_result ~none:(`Msg "viewer field missing")
+    | User.User _ ->
+        json.data.user |> Option.to_result ~none:(`Msg "user field missing")
+  in
+  let username = root.login in
+  let contribs = root.contributionsCollection in
+  let items =
+    let issues = read_issues contribs.issueContributions.nodes in
+    let issue_comments = read_issue_comments root.issueComments.nodes in
+    let prs = read_prs contribs.pullRequestContributions.nodes in
+    let reviews = read_reviews contribs.pullRequestReviewContributions.nodes in
+    let repos = read_repos contribs.repositoryContributions.nodes in
+    issues @ issue_comments @ prs @ reviews @ repos
   in
   let activity =
     (* GitHub seems to ignore the time part, so do the filtering here. *)
