@@ -39,7 +39,6 @@ let query user =
             pullRequest { title }
             body
             state
-            comments(first: 100) { nodes { body } }
             repository { nameWithOwner }
           }
         }
