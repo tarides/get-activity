@@ -124,7 +124,6 @@ let request ~user =
             pullRequest { title }
             body
             state
-            comments(first: 100) { nodes { body } }
             repository { nameWithOwner }
           }
         }
@@ -267,9 +266,6 @@ let activity_example ~user =
                 },
                 "body": "xxx",
                 "state": "APPROVED",
-                "comments": {
-                  "nodes": []
-                },
                 "repository": {
                   "nameWithOwner": "realworldocaml/mdx"
                 }
@@ -284,9 +280,6 @@ let activity_example ~user =
                 },
                 "body": "xxx",
                 "state": "APPROVED",
-                "comments": {
-                  "nodes": []
-                },
                 "repository": {
                   "nameWithOwner": "tarides/okra"
                 }
