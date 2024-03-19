@@ -1,91 +1,85 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
-type repository_name = { nameWithOwner : string } [@@deriving yojson]
-type repository = { url : string; nameWithOwner : string } [@@deriving yojson]
+module Repository = struct
+  type t = { url : string; nameWithOwner : string } [@@deriving yojson]
+  type name = { nameWithOwner : string } [@@deriving yojson]
 
-type issue = {
-  url : string;
-  title : string;
-  body : string;
-  repository : repository_name;
-}
-[@@deriving yojson]
+  type contribution = { occurredAt : string; repository : t }
+  [@@deriving yojson]
 
-type issueContribution = { occurredAt : string; issue : issue }
-[@@deriving yojson]
+  type contributions = { nodes : contribution list } [@@deriving yojson]
+end
 
-type issueContributions = { nodes : issueContribution list } [@@deriving yojson]
+module Issue = struct
+  type t = {
+    url : string;
+    title : string;
+    body : string;
+    repository : Repository.name;
+  }
+  [@@deriving yojson]
 
-type pullRequest = {
-  url : string;
-  title : string;
-  body : string;
-  repository : repository_name;
-}
-[@@deriving yojson]
+  type title = { title : string } [@@deriving yojson]
+  type contribution = { occurredAt : string; issue : t } [@@deriving yojson]
+  type contributions = { nodes : contribution list } [@@deriving yojson]
 
-type pullRequestContribution = {
-  occurredAt : string;
-  pullRequest : pullRequest;
-}
-[@@deriving yojson]
+  type comment = {
+    url : string;
+    publishedAt : string;
+    issue : title;
+    repository : Repository.name;
+    body : string;
+  }
+  [@@deriving yojson]
 
-type pullRequestContributions = { nodes : pullRequestContribution list }
-[@@deriving yojson]
+  type comments = { nodes : comment list } [@@deriving yojson]
+end
 
-type pullRequest_title = { title : string } [@@deriving yojson]
+module PullRequest = struct
+  type t = {
+    url : string;
+    title : string;
+    body : string;
+    repository : Repository.name;
+  }
+  [@@deriving yojson]
 
-type pullRequestReview = {
-  url : string;
-  pullRequest : pullRequest_title;
-  body : string;
-  state : string;
-  repository : repository_name;
-}
-[@@deriving yojson]
+  type title = { title : string } [@@deriving yojson]
 
-type pullRequestReviewContribution = {
-  occurredAt : string;
-  pullRequestReview : pullRequestReview;
-}
-[@@deriving yojson]
+  type contribution = { occurredAt : string; pullRequest : t }
+  [@@deriving yojson]
 
-type pullRequestReviewContributions = {
-  nodes : pullRequestReviewContribution list;
-}
-[@@deriving yojson]
+  type contributions = { nodes : contribution list } [@@deriving yojson]
 
-type repositoryContribution = { occurredAt : string; repository : repository }
-[@@deriving yojson]
+  module Review = struct
+    type t = {
+      url : string;
+      pullRequest : title;
+      body : string;
+      state : string;
+      repository : Repository.name;
+    }
+    [@@deriving yojson]
 
-type repositoryContributions = { nodes : repositoryContribution list }
-[@@deriving yojson]
+    type contribution = { occurredAt : string; pullRequestReview : t }
+    [@@deriving yojson]
+
+    type contributions = { nodes : contribution list } [@@deriving yojson]
+  end
+end
 
 type contributionsCollection = {
-  issueContributions : issueContributions;
-  pullRequestContributions : pullRequestContributions;
-  pullRequestReviewContributions : pullRequestReviewContributions;
-  repositoryContributions : repositoryContributions;
+  issueContributions : Issue.contributions;
+  pullRequestContributions : PullRequest.contributions;
+  pullRequestReviewContributions : PullRequest.Review.contributions;
+  repositoryContributions : Repository.contributions;
 }
 [@@deriving yojson]
-
-type issue_title = { title : string } [@@deriving yojson]
-
-type issueComment = {
-  url : string;
-  publishedAt : string;
-  issue : issue_title;
-  repository : repository_name;
-  body : string;
-}
-[@@deriving yojson]
-
-type issueComments = { nodes : issueComment list } [@@deriving yojson]
 
 type user_data = {
   login : string;
   contributionsCollection : contributionsCollection;
-  issueComments : issueComments;
+  issueComments : Issue.comments;
 }
 [@@deriving yojson]
 
@@ -94,5 +88,6 @@ type data = {
   viewer : user_data option; [@yojson.option]
 }
 [@@deriving yojson]
+(** The key is either [viewer] or [user] depending on the request but the value associated is the same. *)
 
 type t = { data : data } [@@deriving yojson]
