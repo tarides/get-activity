@@ -131,10 +131,7 @@ let request ~user =
       repositoryContributions(first: 100) {
         nodes {
           occurredAt
-          repository {
-            url
-            nameWithOwner
-          }
+          repository { url nameWithOwner }
         }
       }
     }
