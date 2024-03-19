@@ -85,7 +85,7 @@ type item = {
 type t = { username : string; activity : item list Repo_map.t }
 
 let read_issues =
-  List.map (fun (c : Json.issueContribution) ->
+  List.map (fun (c : Json.Issue.contribution) ->
       let date = c.occurredAt in
       let url = c.issue.url in
       let title = c.issue.title in
@@ -94,7 +94,7 @@ let read_issues =
       { kind = `Issue; date; url; title; body; repo })
 
 let read_issue_comments =
-  List.map (fun (c : Json.issueComment) ->
+  List.map (fun (c : Json.Issue.comment) ->
       let date = c.publishedAt in
       let url = c.url in
       let title = c.issue.title in
@@ -103,7 +103,7 @@ let read_issue_comments =
       { kind = `Issue_comment; date; url; title; body; repo })
 
 let read_prs =
-  List.map (fun (c : Json.pullRequestContribution) ->
+  List.map (fun (c : Json.PullRequest.contribution) ->
       let date = c.occurredAt in
       let url = c.pullRequest.url in
       let title = c.pullRequest.title in
@@ -112,7 +112,7 @@ let read_prs =
       { kind = `PR; date; url; title; body; repo })
 
 let read_reviews =
-  List.map (fun (c : Json.pullRequestReviewContribution) ->
+  List.map (fun (c : Json.PullRequest.Review.contribution) ->
       let date = c.occurredAt in
       let state = c.pullRequestReview.state in
       let url = c.pullRequestReview.url in
@@ -122,7 +122,7 @@ let read_reviews =
       { kind = `Review state; date; url; title; body; repo })
 
 let read_repos =
-  List.map (fun (c : Json.repositoryContribution) ->
+  List.map (fun (c : Json.Repository.contribution) ->
       let date = c.occurredAt in
       let url = c.repository.url in
       let repo = c.repository.nameWithOwner in
