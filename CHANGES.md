@@ -2,7 +2,7 @@
 
 ### Fixed
 
-- `ppx_expect` is now only used in tests (#<PR_NUMBER>, @gpetiot)
+- `ppx_expect` is now only used in tests (#29, @gpetiot)
 
 ## 1.0.0
 
