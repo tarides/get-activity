@@ -1,3 +1,9 @@
+## unreleased
+
+### Fixed
+
+- `ppx_expect` is now only used in tests (#<PR_NUMBER>, @gpetiot)
+
 ## 1.0.0
 
 ### Added
