@@ -1,0 +1,6 @@
+(library
+ (name expect)
+ (inline_tests)
+ (libraries get-activity-lib)
+ (preprocess
+  (pps ppx_expect)))
