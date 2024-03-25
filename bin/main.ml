@@ -33,10 +33,10 @@ let mtime path =
 
 let get_token () = Token.load (home / ".github" / "github-activity-token")
 
-let show ~from ~user json =
-  let* contribs = Contributions.of_json ~from ~user json in
+let show ~period ~user json =
+  let* contribs = Contributions.of_json ~period ~user json in
   if Contributions.is_empty contribs then
-    Fmt.epr "(no activity found since %s)@." from
+    Fmt.epr "(no activity found since %s)@." (fst period)
   else Fmt.pr "%a@." Contributions.pp contribs
 
 let mode = `Normal
@@ -96,7 +96,7 @@ let run period user : unit =
           let* token = get_token () in
           let request = Contributions.request ~period ~user ~token in
           let* contributions = Graphql.exec request in
-          show ~from:(fst period) ~user contributions)
+          show ~period ~user contributions)
   | `Save ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
@@ -105,10 +105,12 @@ let run period user : unit =
           Yojson.Safe.to_file "activity.json" contributions)
   | `Load ->
       (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
-      let from =
-        mtime last_fetch_file |> Option.value ~default:0.0 |> Period.to_8601
+      let period =
+        let from = mtime last_fetch_file |> Option.value ~default:0.0 in
+        let to_ = Unix.time () in
+        (Period.to_8601 from, Period.to_8601 to_)
       in
-      show ~from ~user @@ Yojson.Safe.from_file "activity.json"
+      show ~period ~user @@ Yojson.Safe.from_file "activity.json"
 
 let term = Term.(const run $ period $ user)
 let cmd = Cmd.v info term
