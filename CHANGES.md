@@ -2,7 +2,7 @@
 
 ### Fixed
 
-- Take into account the end date of the specified period when filtering github activity (#<PR_NUMBER>, @gpetiot)
+- Take into account the end date of the specified period when filtering github activity (#31, @gpetiot)
 
 ### Changed
 
