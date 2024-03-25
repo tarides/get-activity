@@ -6,7 +6,7 @@
 
 ### Changed
 
-- API: `Contributions.of_json` parameter `~from` is replaced by `~period` (#<PR_NUMBER>, @gpetiot)
+- API: `Contributions.of_json` parameter `~from` is replaced by `~period` (#31, @gpetiot)
 
 ## 1.0.1
 
