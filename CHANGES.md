@@ -1,3 +1,13 @@
+## unreleased
+
+### Fixed
+
+- Take into account the end date of the specified period when filtering github activity (#<PR_NUMBER>, @gpetiot)
+
+### Changed
+
+- API: `Contributions.of_json` parameter `~from` is replaced by `~period` (#<PR_NUMBER>, @gpetiot)
+
 ## 1.0.1
 
 ### Fixed

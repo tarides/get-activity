@@ -129,7 +129,7 @@ let read_repos =
       let title = "Created new repository" in
       { kind = `New_repo; date; url; title; body = ""; repo })
 
-let of_json ~from ~user json =
+let of_json ~period:(from, to_) ~user json =
   let* json =
     match Json.t_of_yojson json with
     | x -> Ok x
@@ -156,7 +156,7 @@ let of_json ~from ~user json =
   let activity =
     (* GitHub seems to ignore the time part, so do the filtering here. *)
     items
-    |> List.filter (fun item -> item.date >= from)
+    |> List.filter (fun item -> item.date >= from && item.date <= to_)
     |> List.fold_left
          (fun acc item ->
            let items =

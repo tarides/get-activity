@@ -19,8 +19,11 @@ val request :
   period:string * string -> user:User.t -> token:Token.t -> Graphql.request
 
 val of_json :
-  from:string -> user:User.t -> Yojson.Safe.t -> (t, [ `Msg of string ]) result
-(** We pass [from] again here so we can filter out anything that GitHub included by accident. *)
+  period:string * string ->
+  user:User.t ->
+  Yojson.Safe.t ->
+  (t, [ `Msg of string ]) result
+(** We pass [period] again here so we can filter out anything that GitHub included by accident. *)
 
 val is_empty : t -> bool
 
