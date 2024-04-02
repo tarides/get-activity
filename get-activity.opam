@@ -9,6 +9,8 @@ depends: [
   "dune" {>= "2.8"}
   "cmdliner" {>= "1.1.1"}
   "dune-build-info"
+  "fmt"
+  "logs"
   "get-activity-lib" {= version}
   "odoc" {with-doc}
 ]
