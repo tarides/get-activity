@@ -24,8 +24,10 @@ let exec request =
   let { meth; url; headers; body } = request in
   let body = Yojson.Safe.to_string body in
   let request = Curly.Request.make ~headers ~body ~url ~meth () in
+  Logs.debug (fun m -> m "request: @[%a@]@." Curly.Request.pp request);
   match Curly.run request with
-  | Ok { Curly.Response.body; _ } -> (
+  | Ok ({ Curly.Response.body; _ } as response) -> (
+      Logs.debug (fun m -> m "response: @[%a@]@." Curly.Response.pp response);
       let json = Yojson.Safe.from_string body in
       match json / "message" with
       | `Null -> Ok json

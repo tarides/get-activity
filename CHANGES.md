@@ -8,6 +8,10 @@
 
 - API: `Contributions.of_json` parameter `~from` is replaced by `~period` (#31, @gpetiot)
 
+### Added
+
+- Display curl requests and responses in debug mode (`-vv` or `--verbosity debug`) (#36, @gpetiot)
+
 ## 1.0.1
 
 ### Fixed

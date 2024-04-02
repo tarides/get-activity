@@ -2,4 +2,11 @@
  (name main)
  (public_name get-activity)
  (package get-activity)
- (libraries cmdliner dune-build-info get-activity-lib))
+ (libraries
+  cmdliner
+  dune-build-info
+  get-activity-lib
+  logs.cli
+  logs.fmt
+  fmt.cli
+  fmt.tty))
