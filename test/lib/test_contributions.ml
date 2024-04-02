@@ -327,6 +327,35 @@ let activity_example ~user =
 let activity_example_json ~user =
   Yojson.Safe.from_string (activity_example ~user)
 
+let error_example =
+  {|
+  {
+  "errors": [
+    {
+      "path": [
+        "query",
+        "viewer",
+        "contributionsCollection",
+        "to"
+      ],
+      "extensions": {
+        "code": "argumentLiteralsIncompatible",
+        "typeName": "Field",
+        "argumentName": "to"
+      },
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "message": "Error."
+    }
+  ]
+} |}
+
+let error_example_json = Yojson.Safe.from_string error_example
+
 let contributions_example1 ~user =
   let open Contributions in
   {
@@ -493,6 +522,10 @@ let test_of_json =
               username = user |> or_viewer;
               activity = Contributions.Repo_map.empty;
             }));
+    (let user = User.User "gpetiot" in
+     make_test "errors"
+       ~period:("2024-02-27T12:05:04Z", "2024-03-13T11:09:56Z")
+       ~user error_example_json ~expected:(Fmt.error_msg "Error."));
   ]
 
 let test_is_empty =
