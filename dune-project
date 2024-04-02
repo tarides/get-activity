@@ -22,6 +22,7 @@
   astring
   curly
   (fmt (>= 0.8.7))
+  logs
   ppx_yojson_conv
   (yojson (>= 1.6))
   (ocaml (>= 4.08))))

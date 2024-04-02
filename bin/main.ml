@@ -43,6 +43,15 @@ let mode = `Normal
 
 open Cmdliner
 
+let setup_log style_renderer level =
+  Fmt_tty.setup_std_outputs ?style_renderer ();
+  Logs.set_level level;
+  Logs.set_reporter (Logs_fmt.reporter ());
+  ()
+
+let setup_log =
+  Term.(const setup_log $ Fmt_cli.style_renderer () $ Logs_cli.level ())
+
 let from =
   let doc =
     Arg.info ~docv:"TIMESTAMP" ~doc:"Starting date (ISO8601)." [ "from" ]
@@ -88,11 +97,10 @@ let version =
 
 let info = Cmd.info "get-activity" ~version
 
-let run period user : unit =
+let run () period user : unit =
   match mode with
   | `Normal ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
-          (* Fmt.pr "period: %a@." Fmt.(pair string string) period; *)
           let* token = get_token () in
           let request = Contributions.request ~period ~user ~token in
           let* contributions = Graphql.exec request in
@@ -112,6 +120,6 @@ let run period user : unit =
       in
       show ~period ~user @@ Yojson.Safe.from_file "activity.json"
 
-let term = Term.(const run $ term_result period $ user)
+let term = Term.(const run $ setup_log $ term_result period $ user)
 let cmd = Cmd.v info term
 let () = Stdlib.exit @@ Cmd.eval cmd

@@ -1,6 +1,6 @@
 (library
  (name get_activity)
  (public_name get-activity-lib)
- (libraries astring curly fmt yojson)
+ (libraries astring curly fmt logs yojson)
  (preprocess
   (pps ppx_yojson_conv)))
