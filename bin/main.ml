@@ -58,13 +58,13 @@ let last_week =
   Arg.(value & flag doc)
 
 let period =
-  let f from to_ last_week : Period.t =
-    if last_week then `Last_week
+  let f from to_ last_week =
+    if last_week then Ok `Last_week
     else
       match (from, to_) with
-      | None, None -> `Since_last_fetch
-      | Some x, Some y -> `Range (x, y)
-      | _ -> Fmt.invalid_arg "--to and --from should be provided together"
+      | None, None -> Ok `Since_last_fetch
+      | Some x, Some y -> Ok (`Range (x, y))
+      | _ -> Fmt.error_msg "--to and --from should be provided together"
   in
   Term.(const f $ from $ to_ $ last_week)
 
@@ -112,6 +112,6 @@ let run period user : unit =
       in
       show ~period ~user @@ Yojson.Safe.from_file "activity.json"
 
-let term = Term.(const run $ period $ user)
+let term = Term.(const run $ term_result period $ user)
 let cmd = Cmd.v info term
 let () = Stdlib.exit @@ Cmd.eval cmd
