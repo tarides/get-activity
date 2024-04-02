@@ -10,7 +10,7 @@
 
 ### Added
 
-- Display curl requests and responses in debug mode (`-vv` or `--verbosity debug`) (#<PR_NUMBER>, @gpetiot)
+- Display curl requests and responses in debug mode (`-vv` or `--verbosity debug`) (#36, @gpetiot)
 
 ## 1.0.1
 
