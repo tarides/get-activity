@@ -133,8 +133,9 @@ let of_json ~period:(from, to_) ~user json =
   let* json =
     match Json.t_of_yojson json with
     | x -> Ok x
-    | exception Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error (exn, _) ->
-        Error (`Msg (Printexc.to_string exn))
+    | exception Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error (Failure e, _)
+      ->
+        Error (`Msg e)
   in
   match json.data with
   | Some data ->
