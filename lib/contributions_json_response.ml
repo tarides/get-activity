@@ -90,4 +90,11 @@ type data = {
 [@@deriving yojson]
 (** The key is either [viewer] or [user] depending on the request but the value associated is the same. *)
 
-type t = { data : data } [@@deriving yojson]
+type error = { message : string }
+[@@deriving yojson] [@@yojson.allow_extra_fields]
+
+type t = {
+  data : data option; [@yojson.option]
+  errors : error list; [@default []]
+}
+[@@deriving yojson]

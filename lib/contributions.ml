@@ -136,36 +136,43 @@ let of_json ~period:(from, to_) ~user json =
     | exception Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error (exn, _) ->
         Error (`Msg (Printexc.to_string exn))
   in
-  let* root =
-    match user with
-    | User.Viewer ->
-        json.data.viewer |> Option.to_result ~none:(`Msg "viewer field missing")
-    | User.User _ ->
-        json.data.user |> Option.to_result ~none:(`Msg "user field missing")
-  in
-  let username = root.login in
-  let contribs = root.contributionsCollection in
-  let items =
-    let issues = read_issues contribs.issueContributions.nodes in
-    let issue_comments = read_issue_comments root.issueComments.nodes in
-    let prs = read_prs contribs.pullRequestContributions.nodes in
-    let reviews = read_reviews contribs.pullRequestReviewContributions.nodes in
-    let repos = read_repos contribs.repositoryContributions.nodes in
-    issues @ issue_comments @ prs @ reviews @ repos
-  in
-  let activity =
-    (* GitHub seems to ignore the time part, so do the filtering here. *)
-    items
-    |> List.filter (fun item -> item.date >= from && item.date <= to_)
-    |> List.fold_left
-         (fun acc item ->
-           let items =
-             Repo_map.find_opt item.repo acc |> Option.value ~default:[]
-           in
-           Repo_map.add item.repo (item :: items) acc)
-         Repo_map.empty
-  in
-  Ok { username; activity }
+  match json.data with
+  | Some data ->
+      let* root =
+        match user with
+        | User.Viewer ->
+            data.viewer |> Option.to_result ~none:(`Msg "viewer field missing")
+        | User.User _ ->
+            data.user |> Option.to_result ~none:(`Msg "user field missing")
+      in
+      let username = root.login in
+      let contribs = root.contributionsCollection in
+      let items =
+        let issues = read_issues contribs.issueContributions.nodes in
+        let issue_comments = read_issue_comments root.issueComments.nodes in
+        let prs = read_prs contribs.pullRequestContributions.nodes in
+        let reviews =
+          read_reviews contribs.pullRequestReviewContributions.nodes
+        in
+        let repos = read_repos contribs.repositoryContributions.nodes in
+        issues @ issue_comments @ prs @ reviews @ repos
+      in
+      let activity =
+        (* GitHub seems to ignore the time part, so do the filtering here. *)
+        items
+        |> List.filter (fun item -> item.date >= from && item.date <= to_)
+        |> List.fold_left
+             (fun acc item ->
+               let items =
+                 Repo_map.find_opt item.repo acc |> Option.value ~default:[]
+               in
+               Repo_map.add item.repo (item :: items) acc)
+             Repo_map.empty
+      in
+      Ok { username; activity }
+  | None ->
+      Fmt.error_msg "@[%a@]" (Fmt.list Fmt.string)
+        (List.map (fun x -> x.Json.message) json.errors)
 
 let id url =
   match Astring.String.cut ~sep:"/" ~rev:true url with
