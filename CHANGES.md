@@ -11,7 +11,7 @@
 ### Added
 
 - Display curl requests and responses in debug mode (`-vv` or `--verbosity debug`) (#36, @gpetiot)
-- Add the PR merge events to the contributions (#<PR_NUMBER>, @emillon, @gpetiot)
+- Add the PR merge events to the contributions (#37, @emillon, @gpetiot)
 
 ## 1.0.1
 
