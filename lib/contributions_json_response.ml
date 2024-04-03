@@ -22,17 +22,6 @@ module Issue = struct
   type title = { title : string } [@@deriving yojson]
   type contribution = { occurredAt : string; issue : t } [@@deriving yojson]
   type contributions = { nodes : contribution list } [@@deriving yojson]
-
-  type comment = {
-    url : string;
-    publishedAt : string;
-    issue : title;
-    repository : Repository.name;
-    body : string;
-  }
-  [@@deriving yojson]
-
-  type comments = { nodes : comment list } [@@deriving yojson]
 end
 
 module PullRequest = struct
@@ -73,6 +62,17 @@ module PullRequest = struct
   end
 end
 
+type comment = {
+  url : string;
+  publishedAt : string;
+  issue : Issue.title;
+  repository : Repository.name;
+  body : string;
+}
+[@@deriving yojson]
+
+type comments = { nodes : comment list } [@@deriving yojson]
+
 type contributionsCollection = {
   issueContributions : Issue.contributions;
   pullRequestContributions : PullRequest.contributions;
@@ -84,7 +84,7 @@ type contributionsCollection = {
 type user_data = {
   login : string;
   contributionsCollection : contributionsCollection;
-  issueComments : Issue.comments;
+  issueComments : comments;
 }
 [@@deriving yojson]
 

@@ -93,7 +93,16 @@ let contributions_example ~user =
                };
                {
                  repo = "tarides/okra";
-                 kind = `Issue_comment;
+                 kind = `Comment `PR;
+                 date = "2024-03-13T11:09:56Z";
+                 url =
+                   "https://github.com/tarides/okra/pull/114#issuecomment-1994130584";
+                 title = "Gitlab: exception when parsing Gitlab's JSON";
+                 body = "xxx";
+               };
+               {
+                 repo = "tarides/okra";
+                 kind = `Comment `Issue;
                  date = "2024-03-13T11:09:56Z";
                  url =
                    "https://github.com/tarides/okra/issues/114#issuecomment-1994130584";
@@ -157,7 +166,10 @@ let%expect_test "Contributions.pp" =
     APPROVED Make README.md more precise [#166](https://github.com/tarides/okra/pull/166#pullrequestreview-1905972361).
     xxx
 
-    Commented on "Gitlab: exception when parsing Gitlab's JSON" [#114](https://github.com/tarides/okra/issues/114#issuecomment-1994130584).
+    Commented on PR "Gitlab: exception when parsing Gitlab's JSON" [#114](https://github.com/tarides/okra/pull/114#issuecomment-1994130584).
+    xxx
+
+    Commented on issue "Gitlab: exception when parsing Gitlab's JSON" [#114](https://github.com/tarides/okra/issues/114#issuecomment-1994130584).
     xxx
 
     Make the `get-activity` package known to ocaml-ci [#165](https://github.com/tarides/okra/issues/165).

@@ -10,16 +10,17 @@ module Testable = struct
     module Kind = struct
       type t =
         [ `Issue
-        | `Issue_comment
         | `PR
+        | `Comment of [ `Issue | `PR ]
         | `Review of string
         | `Merge
         | `New_repo ]
 
       let pp fs = function
         | `Issue -> Format.fprintf fs "`Issue"
-        | `Issue_comment -> Format.fprintf fs "`Issue_comment"
         | `PR -> Format.fprintf fs "`PR"
+        | `Comment `Issue -> Format.fprintf fs "`Comment `Issue"
+        | `Comment `PR -> Format.fprintf fs "`Comment `PR"
         | `Review x -> Format.fprintf fs "`Review %S" x
         | `Merge -> Format.fprintf fs "`Merge"
         | `New_repo -> Format.fprintf fs "`New_repo"
@@ -27,8 +28,9 @@ module Testable = struct
       let eq (x : t) (y : t) =
         match (x, y) with
         | `Issue, `Issue
-        | `Issue_comment, `Issue_comment
         | `PR, `PR
+        | `Comment `Issue, `Comment `Issue
+        | `Comment `PR, `Comment `PR
         | `Merge, `Merge
         | `New_repo, `New_repo ->
             true
@@ -351,6 +353,17 @@ let activity_example ~user =
               "nameWithOwner": "tarides/okra"
             },
             "body": "xxx"
+          },
+          {
+            "url": "https://github.com/tarides/okra/pull/114#issuecomment-1994130584",
+            "publishedAt": "2024-03-13T11:09:56Z",
+            "issue": {
+              "title": "Gitlab: exception when parsing Gitlab's JSON"
+            },
+            "repository": {
+              "nameWithOwner": "tarides/okra"
+            },
+            "body": "xxx"
           }
         ]
       }
@@ -515,7 +528,16 @@ let contributions_example2 ~user =
                };
                {
                  repo = "tarides/okra";
-                 kind = `Issue_comment;
+                 kind = `Comment `PR;
+                 date = "2024-03-13T11:09:56Z";
+                 url =
+                   "https://github.com/tarides/okra/pull/114#issuecomment-1994130584";
+                 title = "Gitlab: exception when parsing Gitlab's JSON";
+                 body = "xxx";
+               };
+               {
+                 repo = "tarides/okra";
+                 kind = `Comment `Issue;
                  date = "2024-03-13T11:09:56Z";
                  url =
                    "https://github.com/tarides/okra/issues/114#issuecomment-1994130584";

@@ -7,11 +7,14 @@
 ### Changed
 
 - API: `Contributions.of_json` parameter `~from` is replaced by `~period` (#31, @gpetiot)
+- Distinguish between issue comments and PR comments (#<PR_NUMBER>, @gpetiot)
+  API: new constructor `Comment` replacing `Issue_comment`
 
 ### Added
 
 - Display curl requests and responses in debug mode (`-vv` or `--verbosity debug`) (#36, @gpetiot)
 - Add the PR merge events to the contributions (#37, @emillon, @gpetiot)
+  API: new constructor `Merge`
 
 ## 1.0.1
 
