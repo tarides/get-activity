@@ -27,6 +27,14 @@ let query user =
             title
             body
             repository { nameWithOwner }
+            timelineItems(last:10, itemTypes:[MERGED_EVENT]) {
+              nodes {
+                ... on MergedEvent {
+                  createdAt
+                  actor { login }
+                }
+              }
+            }
           }
         }
       }
@@ -75,7 +83,8 @@ module Repo_map = Map.Make (String)
 
 type item = {
   repo : string;
-  kind : [ `Issue | `Issue_comment | `PR | `Review of string | `New_repo ];
+  kind :
+    [ `Issue | `Issue_comment | `PR | `Review of string | `Merge | `New_repo ];
   date : Datetime.t;
   url : string;
   title : string;
@@ -102,14 +111,28 @@ let read_issue_comments =
       let repo = c.repository.nameWithOwner in
       { kind = `Issue_comment; date; url; title; body; repo })
 
-let read_prs =
-  List.map (fun (c : Json.PullRequest.contribution) ->
+let read_prs ~username =
+  List.fold_left
+    (fun acc (c : Json.PullRequest.contribution) ->
       let date = c.occurredAt in
       let url = c.pullRequest.url in
       let title = c.pullRequest.title in
       let body = c.pullRequest.body in
       let repo = c.pullRequest.repository.nameWithOwner in
-      { kind = `PR; date; url; title; body; repo })
+      let timeline_items = c.pullRequest.timelineItems.nodes in
+      let acc = { kind = `PR; date; url; title; body; repo } :: acc in
+      let acc =
+        List.fold_left
+          (fun acc (it : Json.PullRequest.timelineItem) ->
+            let date = it.createdAt in
+            let login = it.actor.login in
+            if String.equal login username then
+              { kind = `Merge; date; url; title; body = ""; repo } :: acc
+            else acc)
+          acc timeline_items
+      in
+      acc)
+    []
 
 let read_reviews =
   List.map (fun (c : Json.PullRequest.Review.contribution) ->
@@ -151,7 +174,7 @@ let of_json ~period:(from, to_) ~user json =
       let items =
         let issues = read_issues contribs.issueContributions.nodes in
         let issue_comments = read_issue_comments root.issueComments.nodes in
-        let prs = read_prs contribs.pullRequestContributions.nodes in
+        let prs = read_prs ~username contribs.pullRequestContributions.nodes in
         let reviews =
           read_reviews contribs.pullRequestReviewContributions.nodes
         in
@@ -190,6 +213,7 @@ let pp_title f t =
       Fmt.pf f "Commented on %S [#%s](%s)" t.title (id t.url) t.url
   | `PR -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
   | `Review s -> Fmt.pf f "%s %s [#%s](%s)" s t.title (id t.url) t.url
+  | `Merge -> Fmt.pf f "Merged %S [#%s](%s)" t.title (id t.url) t.url
   | `New_repo -> Fmt.pf f "Created repository [%s](%s)" t.repo t.url
 
 let pp_body f = function

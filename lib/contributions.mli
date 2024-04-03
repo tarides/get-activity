@@ -4,7 +4,8 @@ end
 
 type item = {
   repo : string;
-  kind : [ `Issue | `Issue_comment | `PR | `Review of string | `New_repo ];
+  kind :
+    [ `Issue | `Issue_comment | `PR | `Review of string | `Merge | `New_repo ];
   date : Datetime.t;
   url : string;
   title : string;
