@@ -36,11 +36,16 @@ module Issue = struct
 end
 
 module PullRequest = struct
+  type actor = { login : string } [@@deriving yojson]
+  type timelineItem = { createdAt : string; actor : actor } [@@deriving yojson]
+  type timelineItems = { nodes : timelineItem list } [@@deriving yojson]
+
   type t = {
     url : string;
     title : string;
     body : string;
     repository : Repository.name;
+    timelineItems : timelineItems;
   }
   [@@deriving yojson]
 

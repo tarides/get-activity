@@ -8,13 +8,20 @@ module Testable = struct
 
   module Item = struct
     module Kind = struct
-      type t = [ `Issue | `Issue_comment | `PR | `Review of string | `New_repo ]
+      type t =
+        [ `Issue
+        | `Issue_comment
+        | `PR
+        | `Review of string
+        | `Merge
+        | `New_repo ]
 
       let pp fs = function
         | `Issue -> Format.fprintf fs "`Issue"
         | `Issue_comment -> Format.fprintf fs "`Issue_comment"
         | `PR -> Format.fprintf fs "`PR"
         | `Review x -> Format.fprintf fs "`Review %S" x
+        | `Merge -> Format.fprintf fs "`Merge"
         | `New_repo -> Format.fprintf fs "`New_repo"
 
       let eq (x : t) (y : t) =
@@ -22,6 +29,7 @@ module Testable = struct
         | `Issue, `Issue
         | `Issue_comment, `Issue_comment
         | `PR, `PR
+        | `Merge, `Merge
         | `New_repo, `New_repo ->
             true
         | `Review x, `Review y -> String.equal x y
@@ -113,6 +121,14 @@ let request ~user =
             title
             body
             repository { nameWithOwner }
+            timelineItems(last:10, itemTypes:[MERGED_EVENT]) {
+              nodes {
+                ... on MergedEvent {
+                  createdAt
+                  actor { login }
+                }
+              }
+            }
           }
         }
       }
@@ -236,6 +252,16 @@ let activity_example ~user =
                 "body": "xxx",
                 "repository": {
                   "nameWithOwner": "ocaml-ppx/ocamlformat"
+                },
+                "timelineItems": {
+                  "nodes": [
+                    {
+                      "createdAt": "2024-03-13T11:09:56Z",
+                      "actor": {
+                        "login": %S
+                      }
+                    }
+                  ]
                 }
               }
             },
@@ -247,6 +273,16 @@ let activity_example ~user =
                 "body": "xxx",
                 "repository": {
                   "nameWithOwner": "realworldocaml/mdx"
+                },
+                "timelineItems": {
+                  "nodes": [
+                    {
+                      "createdAt": "2024-04-02T20:22:37Z",
+                      "actor": {
+                        "login": "xxx"
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -322,7 +358,7 @@ let activity_example ~user =
   }
 }
 |}
-    (User.response_field user) (user |> or_viewer)
+    (User.response_field user) (user |> or_viewer) (user |> or_viewer)
 
 let activity_example_json ~user =
   Yojson.Safe.from_string (activity_example ~user)
@@ -424,6 +460,14 @@ let contributions_example2 ~user =
                  url = "https://github.com/ocaml-ppx/ocamlformat/pull/2533";
                  title = "Represent the expr sequence as a list";
                  body = "xxx";
+               };
+               {
+                 repo = "ocaml-ppx/ocamlformat";
+                 kind = `Merge;
+                 date = "2024-03-13T11:09:56Z";
+                 url = "https://github.com/ocaml-ppx/ocamlformat/pull/2533";
+                 title = "Represent the expr sequence as a list";
+                 body = "";
                };
              ] );
            ( "realworldocaml/mdx",
