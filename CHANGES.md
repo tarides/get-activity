@@ -7,7 +7,7 @@
 ### Changed
 
 - API: `Contributions.of_json` parameter `~from` is replaced by `~period` (#31, @gpetiot)
-- Distinguish between issue comments and PR comments (#<PR_NUMBER>, @gpetiot)
+- Distinguish between issue comments and PR comments (#38, @gpetiot)
   API: new constructor `Comment` replacing `Issue_comment`
 
 ### Added
