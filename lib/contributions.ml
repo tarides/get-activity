@@ -84,7 +84,12 @@ module Repo_map = Map.Make (String)
 type item = {
   repo : string;
   kind :
-    [ `Issue | `Issue_comment | `PR | `Review of string | `Merge | `New_repo ];
+    [ `Issue
+    | `PR
+    | `Comment of [ `Issue | `PR ]
+    | `Review of string
+    | `Merge
+    | `New_repo ];
   date : Datetime.t;
   url : string;
   title : string;
@@ -103,13 +108,16 @@ let read_issues =
       { kind = `Issue; date; url; title; body; repo })
 
 let read_issue_comments =
-  List.map (fun (c : Json.Issue.comment) ->
+  List.map (fun (c : Json.comment) ->
       let date = c.publishedAt in
       let url = c.url in
       let title = c.issue.title in
+      let kind =
+        if Astring.String.is_infix ~affix:"/issues/" url then `Issue else `PR
+      in
       let body = c.body in
       let repo = c.repository.nameWithOwner in
-      { kind = `Issue_comment; date; url; title; body; repo })
+      { kind = `Comment kind; date; url; title; body; repo })
 
 let read_prs ~username =
   List.fold_left
@@ -209,9 +217,11 @@ let id url =
 let pp_title f t =
   match t.kind with
   | `Issue -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
-  | `Issue_comment ->
-      Fmt.pf f "Commented on %S [#%s](%s)" t.title (id t.url) t.url
   | `PR -> Fmt.pf f "%s [#%s](%s)" t.title (id t.url) t.url
+  | `Comment `Issue ->
+      Fmt.pf f "Commented on issue %S [#%s](%s)" t.title (id t.url) t.url
+  | `Comment `PR ->
+      Fmt.pf f "Commented on PR %S [#%s](%s)" t.title (id t.url) t.url
   | `Review s -> Fmt.pf f "%s %s [#%s](%s)" s t.title (id t.url) t.url
   | `Merge -> Fmt.pf f "Merged %S [#%s](%s)" t.title (id t.url) t.url
   | `New_repo -> Fmt.pf f "Created repository [%s](%s)" t.repo t.url
