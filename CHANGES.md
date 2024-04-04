@@ -2,7 +2,7 @@
 
 ### Fixed
 
-- Filter out null elements that are sometimes in the nodes list (#<PR_NUMBER>, @gpetiot)
+- Filter out null elements that are sometimes in the nodes list (#39, @gpetiot)
 
 ## 2.0.0
 
