@@ -7,7 +7,7 @@ module Repository = struct
   type contribution = { occurredAt : string; repository : t }
   [@@deriving yojson]
 
-  type contributions = { nodes : contribution list } [@@deriving yojson]
+  type contributions = { nodes : contribution option list } [@@deriving yojson]
 end
 
 module Issue = struct
@@ -21,13 +21,13 @@ module Issue = struct
 
   type title = { title : string } [@@deriving yojson]
   type contribution = { occurredAt : string; issue : t } [@@deriving yojson]
-  type contributions = { nodes : contribution list } [@@deriving yojson]
+  type contributions = { nodes : contribution option list } [@@deriving yojson]
 end
 
 module PullRequest = struct
   type actor = { login : string } [@@deriving yojson]
   type timelineItem = { createdAt : string; actor : actor } [@@deriving yojson]
-  type timelineItems = { nodes : timelineItem list } [@@deriving yojson]
+  type timelineItems = { nodes : timelineItem option list } [@@deriving yojson]
 
   type t = {
     url : string;
@@ -43,7 +43,7 @@ module PullRequest = struct
   type contribution = { occurredAt : string; pullRequest : t }
   [@@deriving yojson]
 
-  type contributions = { nodes : contribution list } [@@deriving yojson]
+  type contributions = { nodes : contribution option list } [@@deriving yojson]
 
   module Review = struct
     type t = {
@@ -58,7 +58,8 @@ module PullRequest = struct
     type contribution = { occurredAt : string; pullRequestReview : t }
     [@@deriving yojson]
 
-    type contributions = { nodes : contribution list } [@@deriving yojson]
+    type contributions = { nodes : contribution option list }
+    [@@deriving yojson]
   end
 end
 
@@ -71,7 +72,7 @@ type comment = {
 }
 [@@deriving yojson]
 
-type comments = { nodes : comment list } [@@deriving yojson]
+type comments = { nodes : comment option list } [@@deriving yojson]
 
 type contributionsCollection = {
   issueContributions : Issue.contributions;
