@@ -98,7 +98,9 @@ type item = {
 
 type t = { username : string; activity : item list Repo_map.t }
 
-let read_issues =
+let filter_null_nodes l = List.filter_map (fun x -> x) l
+
+let read_issues l =
   List.map (fun (c : Json.Issue.contribution) ->
       let date = c.occurredAt in
       let url = c.issue.url in
@@ -106,8 +108,9 @@ let read_issues =
       let body = c.issue.body in
       let repo = c.issue.repository.nameWithOwner in
       { kind = `Issue; date; url; title; body; repo })
+  @@ filter_null_nodes l
 
-let read_issue_comments =
+let read_issue_comments l =
   List.map (fun (c : Json.comment) ->
       let date = c.publishedAt in
       let url = c.url in
@@ -118,8 +121,9 @@ let read_issue_comments =
       let body = c.body in
       let repo = c.repository.nameWithOwner in
       { kind = `Comment kind; date; url; title; body; repo })
+  @@ filter_null_nodes l
 
-let read_prs ~username =
+let read_prs ~username l =
   List.fold_left
     (fun acc (c : Json.PullRequest.contribution) ->
       let date = c.occurredAt in
@@ -137,12 +141,14 @@ let read_prs ~username =
             if String.equal login username then
               { kind = `Merge; date; url; title; body = ""; repo } :: acc
             else acc)
-          acc timeline_items
+          acc
+        @@ filter_null_nodes timeline_items
       in
       acc)
     []
+  @@ filter_null_nodes l
 
-let read_reviews =
+let read_reviews l =
   List.map (fun (c : Json.PullRequest.Review.contribution) ->
       let date = c.occurredAt in
       let state = c.pullRequestReview.state in
@@ -151,14 +157,16 @@ let read_reviews =
       let body = c.pullRequestReview.body in
       let repo = c.pullRequestReview.repository.nameWithOwner in
       { kind = `Review state; date; url; title; body; repo })
+  @@ filter_null_nodes l
 
-let read_repos =
+let read_repos l =
   List.map (fun (c : Json.Repository.contribution) ->
       let date = c.occurredAt in
       let url = c.repository.url in
       let repo = c.repository.nameWithOwner in
       let title = "Created new repository" in
       { kind = `New_repo; date; url; title; body = ""; repo })
+  @@ filter_null_nodes l
 
 let of_json ~period:(from, to_) ~user json =
   let* json =

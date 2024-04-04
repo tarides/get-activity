@@ -287,7 +287,8 @@ let activity_example ~user =
                   ]
                 }
               }
-            }
+            },
+            null
           ]
         },
         "pullRequestReviewContributions": {
