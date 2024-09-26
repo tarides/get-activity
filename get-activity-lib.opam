@@ -15,7 +15,7 @@ depends: [
   "logs"
   "ppx_yojson_conv"
   "yojson" {>= "1.6"}
-  "ocaml" {>= "5.1"}
+  "ocaml" {>= "5.0"}
   "odoc" {with-doc}
 ]
 build: [
