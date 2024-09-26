@@ -2,7 +2,7 @@
 
 ### Changed
 
-- Use cohttp and eio instead of curly (#<PR_NUMBER>, @gpetiot)
+- Use cohttp and eio instead of curly (#44, @gpetiot)
 
 ## 2.0.1
 
