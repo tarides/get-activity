@@ -23,7 +23,8 @@
   fmt
   logs
   mirage-crypto-rng-eio
-  tls-eio
+  (tls-eio
+   (>= 1.0.0))
   (get-activity-lib
    (= :version))))
 
