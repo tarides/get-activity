@@ -15,11 +15,15 @@
  (name get-activity)
  (synopsis "Collect activity as markdown")
  (depends
+  cohttp-eio
   (cmdliner
    (>= 1.1.1))
   dune-build-info
+  eio_main
   fmt
   logs
+  mirage-crypto-rng-eio
+  tls-eio
   (get-activity-lib
    (= :version))))
 

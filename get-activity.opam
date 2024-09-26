@@ -7,10 +7,14 @@ homepage: "https://github.com/tarides/get-activity"
 bug-reports: "https://github.com/tarides/get-activity/issues"
 depends: [
   "dune" {>= "2.8"}
+  "cohttp-eio"
   "cmdliner" {>= "1.1.1"}
   "dune-build-info"
+  "eio_main"
   "fmt"
   "logs"
+  "mirage-crypto-rng-eio"
+  "tls-eio"
   "get-activity-lib" {= version}
   "odoc" {with-doc}
 ]
