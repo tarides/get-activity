@@ -1,5 +1,58 @@
 open Get_activity
 
+let%expect_test "Graphql.Request.make" =
+  let request = Graphql.Request.make ~token:"" ~query:"" () in
+  Fmt.pr "%a" Graphql.Request.pp request;
+  [%expect
+    {|
+    {
+      request =
+        ((headers
+      ((Authorization "bearer ") (host api.github.com)
+       (user-agent ocaml-cohttp/v6.0.0_beta2)))
+     (meth POST) (scheme (https)) (resource /graphql) (version HTTP_1_1)
+     (encoding Unknown));
+      body =
+        <...>
+      }
+    |}]
+
+let%expect_test "Contributions.request viewer" =
+  let user = User.Viewer in
+  let request = Contributions.request ~period:("", "") ~user ~token:"" in
+  Fmt.pr "%a" Graphql.Request.pp request;
+  [%expect
+    {|
+    {
+      request =
+        ((headers
+      ((Authorization "bearer ") (host api.github.com)
+       (user-agent ocaml-cohttp/v6.0.0_beta2)))
+     (meth POST) (scheme (https)) (resource /graphql) (version HTTP_1_1)
+     (encoding Unknown));
+      body =
+        <...>
+      }
+    |}]
+
+let%expect_test "Contributions.request user" =
+  let user = User.User "me" in
+  let request = Contributions.request ~period:("", "") ~user ~token:"" in
+  Fmt.pr "%a" Graphql.Request.pp request;
+  [%expect
+    {|
+    {
+      request =
+        ((headers
+      ((Authorization "bearer ") (host api.github.com)
+       (user-agent ocaml-cohttp/v6.0.0_beta2)))
+     (meth POST) (scheme (https)) (resource /graphql) (version HTTP_1_1)
+     (encoding Unknown));
+      body =
+        <...>
+      }
+    |}]
+
 let contributions_example ~user =
   let open Contributions in
   {

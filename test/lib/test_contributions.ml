@@ -166,48 +166,6 @@ let request ~user =
 }|}
     User.query user
 
-let test_request =
-  let make_test name ~period ~user ~token ~expected =
-    let name = Printf.sprintf "request: %s" name in
-    let test_fun () =
-      let actual = Contributions.request ~period ~user ~token in
-      Alcotest.(check Alcotest_ext.request) name expected actual
-    in
-    (name, `Quick, test_fun)
-  in
-  [
-    (let user = User.Viewer in
-     make_test "no token" ~user ~token:"" ~period:("", "")
-       ~expected:
-         {
-           meth = `POST;
-           url = "https://api.github.com/graphql";
-           headers = [ ("Authorization", "bearer ") ];
-           body =
-             `Assoc
-               [
-                 ("query", `String (request ~user));
-                 ( "variables",
-                   `Assoc [ ("from", `String ""); ("to", `String "") ] );
-               ];
-         });
-    (let user = User.User "me" in
-     make_test "no token" ~user ~token:"" ~period:("", "")
-       ~expected:
-         {
-           meth = `POST;
-           url = "https://api.github.com/graphql";
-           headers = [ ("Authorization", "bearer ") ];
-           body =
-             `Assoc
-               [
-                 ("query", `String (request ~user));
-                 ( "variables",
-                   `Assoc [ ("from", `String ""); ("to", `String "") ] );
-               ];
-         });
-  ]
-
 let or_viewer = function User.User u -> u | Viewer -> "gpetiot"
 
 let activity_example ~user =
@@ -614,4 +572,4 @@ let test_is_empty =
       ~expected:false;
   ]
 
-let suite = ("Contributions", test_request @ test_of_json @ test_is_empty)
+let suite = ("Contributions", test_of_json @ test_is_empty)

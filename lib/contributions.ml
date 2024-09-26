@@ -73,7 +73,7 @@ let query user =
 let request ~period:(start, finish) ~user ~token =
   let variables = [ ("from", `String start); ("to", `String finish) ] in
   let query = query user in
-  Graphql.request ~token ~variables ~query ()
+  Graphql.Request.make ~token ~variables ~query ()
 
 module Datetime = struct
   type t = string

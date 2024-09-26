@@ -1,3 +1,9 @@
+## unreleased
+
+### Changed
+
+- Use cohttp and eio instead of curly (#<PR_NUMBER>, @gpetiot)
+
 ## 2.0.1
 
 ### Fixed

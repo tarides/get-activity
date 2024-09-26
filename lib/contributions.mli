@@ -22,7 +22,7 @@ module Repo_map : Map.S with type key = string
 type t = { username : string; activity : item list Repo_map.t }
 
 val request :
-  period:string * string -> user:User.t -> token:Token.t -> Graphql.request
+  period:string * string -> user:User.t -> token:Token.t -> Graphql.Request.t
 
 val of_json :
   period:string * string ->

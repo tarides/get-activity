@@ -30,7 +30,7 @@
   (alcotest :with-test)
   (ppx_expect :with-test)
   astring
-  curly
+  cohttp-eio
   (fmt
    (>= 0.8.7))
   logs

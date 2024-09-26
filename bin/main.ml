@@ -97,19 +97,50 @@ let version =
 
 let info = Cmd.info "get-activity" ~version
 
+module Client = struct
+  let null_auth ?ip:_ ~host:_ _ = Ok None
+
+  let https ~authenticator =
+    let tls_config =
+      match Tls.Config.client ~authenticator () with
+      | Error (`Msg msg) -> failwith ("tls configuration problem: " ^ msg)
+      | Ok tls_config -> tls_config
+    in
+    fun uri raw ->
+      let host =
+        Uri.host uri
+        |> Option.map (fun x -> Domain_name.(host_exn (of_string_exn x)))
+      in
+      Tls_eio.client_of_flow ?host tls_config raw
+
+  let make env =
+    Cohttp_eio.Client.make
+      ~https:(Some (https ~authenticator:null_auth))
+      env#net
+end
+
+let run_eio f =
+  Eio_main.run @@ fun env ->
+  Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
+  Eio.Switch.run @@ fun sw ->
+  let client = Client.make env in
+  f env sw client
+
 let run () period user : unit =
   match mode with
   | `Normal ->
+      run_eio @@ fun _env sw client ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
           let request = Contributions.request ~period ~user ~token in
-          let* contributions = Graphql.exec request in
+          let* contributions = Graphql.Request.exec client sw request in
           show ~period ~user contributions)
   | `Save ->
+      run_eio @@ fun _env sw client ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
           let request = Contributions.request ~period ~user ~token in
-          let* contributions = Graphql.exec request in
+          let* contributions = Graphql.Request.exec client sw request in
           Yojson.Safe.to_file "activity.json" contributions)
   | `Load ->
       (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)
