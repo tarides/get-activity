@@ -4,9 +4,13 @@
  (package get-activity)
  (libraries
   cmdliner
+  cohttp-eio
+  eio_main
+  tls-eio
   dune-build-info
   get-activity-lib
   logs.cli
   logs.fmt
+  mirage-crypto-rng-eio
   fmt.cli
   fmt.tty))

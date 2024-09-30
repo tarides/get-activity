@@ -1,15 +1,15 @@
-type request = {
-  meth : Curly.Meth.t;
-  url : string;
-  headers : Curly.Header.t;
-  body : Yojson.Safe.t;
-}
+module Request : sig
+  type t
 
-val request :
-  ?variables:(string * Yojson.Safe.t) list ->
-  token:string ->
-  query:string ->
-  unit ->
-  request
+  val make :
+    ?variables:(string * Yojson.Safe.t) list ->
+    token:string ->
+    query:string ->
+    unit ->
+    t
 
-val exec : request -> (Yojson.Safe.t, [ `Msg of string ]) result
+  val exec :
+    Cohttp_eio.Client.t -> t -> (Yojson.Safe.t, [ `Msg of string ]) result
+
+  val pp : t Fmt.t
+end

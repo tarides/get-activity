@@ -15,11 +15,16 @@
  (name get-activity)
  (synopsis "Collect activity as markdown")
  (depends
+  cohttp-eio
   (cmdliner
    (>= 1.1.1))
   dune-build-info
+  eio_main
   fmt
   logs
+  mirage-crypto-rng-eio
+  (tls-eio
+   (>= 1.0.0))
   (get-activity-lib
    (= :version))))
 
@@ -30,7 +35,7 @@
   (alcotest :with-test)
   (ppx_expect :with-test)
   astring
-  curly
+  cohttp-eio
   (fmt
    (>= 0.8.7))
   logs
@@ -38,4 +43,4 @@
   (yojson
    (>= 1.6))
   (ocaml
-   (>= 4.08))))
+   (>= 5.0))))
