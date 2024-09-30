@@ -122,25 +122,24 @@ end
 let run_eio f =
   Eio_main.run @@ fun env ->
   Mirage_crypto_rng_eio.run (module Mirage_crypto_rng.Fortuna) env @@ fun () ->
-  Eio.Switch.run @@ fun sw ->
   let client = Client.make env in
-  f env sw client
+  f env client
 
 let run () period user : unit =
   match mode with
   | `Normal ->
-      run_eio @@ fun _env sw client ->
+      run_eio @@ fun _env client ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
           let request = Contributions.request ~period ~user ~token in
-          let* contributions = Graphql.Request.exec client sw request in
+          let* contributions = Graphql.Request.exec client request in
           show ~period ~user contributions)
   | `Save ->
-      run_eio @@ fun _env sw client ->
+      run_eio @@ fun _env client ->
       Period.with_period period ~last_fetch_file ~f:(fun period ->
           let* token = get_token () in
           let request = Contributions.request ~period ~user ~token in
-          let* contributions = Graphql.Request.exec client sw request in
+          let* contributions = Graphql.Request.exec client request in
           Yojson.Safe.to_file "activity.json" contributions)
   | `Load ->
       (* When testing formatting changes, it is quicker to fetch the data once and then load it again for each test: *)

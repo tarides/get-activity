@@ -9,10 +9,7 @@ module Request : sig
     t
 
   val exec :
-    Cohttp_eio.Client.t ->
-    Eio.Switch.t ->
-    t ->
-    (Yojson.Safe.t, [ `Msg of string ]) result
+    Cohttp_eio.Client.t -> t -> (Yojson.Safe.t, [ `Msg of string ]) result
 
   val pp : t Fmt.t
 end

@@ -20,9 +20,10 @@ module Request = struct
     let request = Cohttp.Request.make ~meth ~headers uri in
     { request; uri; body }
 
-  let exec client sw { request; body; uri } =
+  let exec client { request; body; uri } =
     Logs.debug (fun m -> m "request: @[%a@]@." Cohttp.Request.pp_hum request);
     let headers = request.headers in
+    Eio.Switch.run @@ fun sw ->
     let resp, body = Cohttp_eio.Client.post ~sw ~body ~headers client uri in
     match resp.status with
     | `OK -> (
